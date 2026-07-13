@@ -3,38 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CEDUR — Loading</title>
+  <title>CEDUR — The roof that makes it home</title>
   <link rel="stylesheet" href="css/loader.css">
+  <link rel="stylesheet" href="css/site.css">
 </head>
-<body>
+<body class="is-locked">
+
+  <!-- ======================== LOADER ======================== -->
   <div class="loader" id="loader">
     <div class="loader__stage" id="stage">
 
-      <!-- Collage images (positions from Figma, 1440×800 canvas) -->
-      <div class="tile tile--53" data-tile>
-        <img src="assets/loader/image-53.png" alt="">
-      </div>
-      <div class="tile tile--56" data-tile>
-        <img src="assets/loader/image-56.png" alt="">
-      </div>
-      <div class="tile tile--58" data-tile>
-        <img src="assets/loader/image-58.png" alt="">
-      </div>
-      <div class="tile tile--52" data-tile>
-        <img src="assets/loader/image-52.png" alt="">
-      </div>
-      <div class="tile tile--54" data-tile>
-        <img src="assets/loader/image-54.png" alt="">
-      </div>
+      <div class="tile" data-card="c53"><img src="assets/loader/image-53.png" alt=""></div>
+      <div class="tile" data-card="c56"><img src="assets/loader/image-56.png" alt=""></div>
+      <div class="tile" data-card="c58"><img src="assets/loader/image-58.png" alt=""></div>
+      <div class="tile" data-card="c52"><img src="assets/loader/image-52.png" alt=""></div>
+      <div class="tile" data-card="c54"><img src="assets/loader/image-54.png" alt=""></div>
 
-      <!-- Center image: grows 375×356 → 637×356 → 1000×559, then the video starts -->
-      <div class="hero" id="hero">
-        <video id="heroVideo" src="assets/loader/video-cedur.mp4"
+      <div class="tile tile--hero" data-card="hero" id="heroTile">
+        <video id="loaderVideo" src="assets/loader/video-cedur.mp4"
                poster="assets/loader/hero-house.png"
                muted playsinline preload="auto"></video>
       </div>
 
-      <!-- LOADING wordmark (kinetic video, text fallback) -->
       <div class="loading-mark" id="loadingMark">
         <video src="assets/loader/loading-kinetic.mp4" muted playsinline autoplay loop
                onerror="this.remove(); document.getElementById('loadingMark').classList.add('loading-mark--text')"></video>
@@ -44,6 +34,108 @@
     </div>
   </div>
 
+  <!-- ======================== MENU ======================== -->
+  <header class="menu" id="menu">
+    <div class="menu__inner">
+      <a class="menu__logo" href="#" aria-label="CEDUR">
+        <svg viewBox="0 0 50 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M25 1 47 8v14c0 9-9 14.5-22 17C12 36.5 3 31 3 22V8L25 1Z" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M14 24 25 15l11 9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>CEDUR</span>
+      </a>
+      <nav class="menu__links" aria-label="Main">
+        <a href="#">Who We Are</a>
+        <a href="#">Built For You</a>
+        <a href="#">Inspiration</a>
+        <a href="#">Our Products</a>
+        <a href="#">Resources</a>
+      </nav>
+      <a class="menu__cta" href="#">
+        <span class="menu__cta-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M7 17 17 7M9 7h8v8" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span>Get Started</span>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <!-- ======================== HERO ======================== -->
+    <section class="hero" id="hero">
+      <video class="hero__video" id="heroVideo" src="assets/loader/video-cedur.mp4"
+             poster="assets/loader/hero-house.png" muted playsinline loop preload="auto"></video>
+      <div class="hero__shade"></div>
+
+      <div class="hero__content">
+        <h1 class="hero__title" id="heroTitle">
+          <span class="reveal-line"><span class="reveal-inner">The roof that</span></span>
+          <span class="reveal-line"><span class="reveal-inner reveal-inner--serif">makes it home.</span></span>
+        </h1>
+        <p class="hero__subtitle" data-fade>
+          CEDUR brings the warm aesthetic of natural cedar shakes and the enduring
+          performance of engineered materials to every roof
+        </p>
+        <a class="hero__button" href="#" data-fade>
+          <span class="hero__button-icon">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span>Request Sample</span>
+        </a>
+      </div>
+
+      <div class="hero__footer" data-fade>
+        <span>/to cedur</span>
+        <span class="hero__footer-center">keep scrolling to explore</span>
+        <span>/to cedur</span>
+      </div>
+    </section>
+
+    <!-- ================== CHOOSE THE LOOK ================== -->
+    <section class="choose" id="choose">
+      <h2 class="choose__title" id="chooseTitle">
+        <span class="reveal-line"><span class="reveal-inner">Choose the Look That</span></span>
+        <span class="reveal-line"><span class="reveal-inner reveal-inner--serif">Fits Your Home.</span></span>
+      </h2>
+
+      <div class="choose__grid" id="pointsStage">
+        <div class="choose__col" data-col>
+          <figure><img src="assets/site/chalet-mountain.png" alt=""></figure>
+          <figure><img src="assets/site/cedar-shake-hand.png" alt=""></figure>
+          <figure><img src="assets/site/shingles-roof-wide.png" alt=""></figure>
+          <figure><img src="assets/loader/image-56.png" alt=""></figure>
+        </div>
+
+        <div class="choose__center">
+          <article class="point-card" id="pointCard">
+            <button class="point-card__close" aria-label="Close">
+              <svg viewBox="0 0 24 24" fill="none"><path d="m6 6 12 12M18 6 6 18" stroke="#020202" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </button>
+            <div class="point-card__body">
+              <div class="point-swap" id="pointSwap">
+                <p class="point-card__num" id="pointNum">01</p>
+                <h3 class="point-card__title" id="pointTitle">Made to Weather the Storm</h3>
+                <p class="point-card__text" id="pointText">
+                  Exceptional impact resistance provides dependable protection against
+                  hail and severe weather, season after season.
+                </p>
+              </div>
+            </div>
+            <div class="point-card__rows" id="pointRows"></div>
+          </article>
+        </div>
+
+        <div class="choose__col" data-col>
+          <figure><img src="assets/site/cedar-roof-pool.png" alt=""></figure>
+          <figure><img src="assets/site/storm-cabin.png" alt=""></figure>
+          <figure><img src="assets/site/snowy-roof-dusk.png" alt=""></figure>
+          <figure><img src="assets/loader/image-52.png" alt=""></figure>
+        </div>
+      </div>
+    </section>
+  </main>
+
   <script src="js/loader.js"></script>
+  <script src="js/site.js"></script>
 </body>
 </html>

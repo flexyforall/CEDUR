@@ -1,0 +1,451 @@
+/* CEDUR site — Figma "Concept 2" (Hero 227:923, Choose the Look 260:2360) */
+
+/* Optional brand fonts: drop the files into assets/fonts/ and they pick up
+   automatically; until then the stacks fall back to close system faces. */
+@font-face {
+  font-family: 'PP Editorial New';
+  src: url('../assets/fonts/PPEditorialNew-Italic.woff2') format('woff2');
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'PP Neue Montreal';
+  src: url('../assets/fonts/PPNeueMontreal-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+
+:root {
+  --accent: #ff5e00;
+  --ink: #020202;
+  --sans: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --serif: 'PP Editorial New', Georgia, 'Times New Roman', serif;
+  --mono-label: 'PP Neue Montreal', 'Neue Montreal', Arial, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: #000;
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body.is-locked { overflow: hidden; }
+
+img, video { display: block; }
+
+a { text-decoration: none; color: inherit; }
+
+/* ======================== MENU ======================== */
+
+.menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+body.is-ready .menu {
+  opacity: 1;
+  transform: none;
+}
+
+.menu__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 80px;
+  padding: 0 24px;
+  transition: margin 0.45s cubic-bezier(0.65, 0, 0.35, 1),
+              height 0.45s cubic-bezier(0.65, 0, 0.35, 1),
+              background 0.45s ease, backdrop-filter 0.45s ease;
+}
+
+/* compact glassy state after leaving the hero (frame 249:1712) */
+.menu.is-compact .menu__inner {
+  margin: 10px 24px 0;
+  height: 60px;
+  padding: 0 16px;
+  background: rgba(20, 20, 20, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.menu__logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+}
+
+.menu__logo svg { width: 34px; height: 28px; }
+
+.menu__logo span {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+}
+
+.menu__links {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+}
+
+.menu__links a {
+  padding: 8px 12px;
+  font-weight: 590;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.02em;
+  color: rgba(255, 255, 255, 0.6);
+  transition: color 0.25s ease;
+}
+
+.menu__links a:hover,
+.menu__links a:focus-visible { color: #fff; }
+
+.menu.is-compact .menu__links {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.menu__cta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 20px 6px 6px;
+  color: #fff;
+  font-weight: 510;
+  font-size: 14px;
+  letter-spacing: -0.02em;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(221, 221, 221, 0.24);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.menu__cta-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  background: var(--accent);
+}
+
+.menu__cta-icon svg { width: 20px; height: 20px; }
+
+/* ======================== HERO ======================== */
+
+.hero {
+  position: relative;
+  height: 100vh;
+  min-height: 640px;
+  overflow: hidden;
+  background: #000;
+}
+
+.hero__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero__shade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 65%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.8) 100%);
+}
+
+.hero__content {
+  position: absolute;
+  left: 60px;
+  bottom: 14vh;
+  width: 931px;
+  max-width: calc(100% - 120px);
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+.hero__title {
+  font-weight: 500;
+  font-size: 80px;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: #fff;
+}
+
+.reveal-line {
+  display: block;
+  overflow: hidden;
+}
+
+.reveal-inner {
+  display: inline-block;
+  transform: translateY(115%);
+}
+
+.reveal-inner--serif {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+/* pixelpoint "one more thing…" style: lines slide up out of a mask */
+.is-revealed .reveal-inner {
+  animation: line-up 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.is-revealed .reveal-line:nth-child(2) .reveal-inner { animation-delay: 0.12s; }
+
+@keyframes line-up {
+  to { transform: translateY(0); }
+}
+
+.hero__subtitle {
+  width: 476px;
+  max-width: 100%;
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: -32px;
+}
+
+[data-fade] {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.9s ease 0.5s, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.5s;
+}
+
+.is-revealed [data-fade],
+[data-fade].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+.hero__button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 4px 16px 4px 4px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 510;
+  font-size: 14px;
+  letter-spacing: -0.02em;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.12);
+}
+
+.hero__button-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.hero__button-icon svg { width: 20px; height: 20px; }
+
+.hero__footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 40px;
+  font-family: var(--mono-label);
+  font-size: 10px;
+  line-height: 0.9;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.hero__footer-center { color: #fff; }
+
+/* ================== CHOOSE THE LOOK ================== */
+
+.choose {
+  position: relative;
+  background: #fff;
+  padding: 80px 0 120px;
+}
+
+.choose__title {
+  text-align: center;
+  font-weight: 500;
+  font-size: 52px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 32px;
+}
+
+.choose__grid {
+  display: grid;
+  grid-template-columns: 446fr 444fr 446fr;
+  gap: 32px;
+  align-items: start;
+  padding: 0 20px;
+}
+
+.choose__col {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.choose__col figure {
+  height: 560px;
+  overflow: hidden;
+}
+
+.choose__col img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.choose__center {
+  align-self: stretch;
+}
+
+/* the point card pins to the exact center of the viewport while
+   the side columns keep scrolling up (section 2 -> 3 transition) */
+.point-card {
+  position: sticky;
+  top: calc(50vh - 280px);
+  height: 560px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px 32px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: #fff;
+  overflow: hidden;
+}
+
+.point-card__close {
+  position: absolute;
+  top: 31px;
+  right: 31px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.point-card__close svg { width: 100%; height: 100%; }
+
+.point-swap {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.point-swap.is-leaving {
+  animation: point-out 0.35s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.point-swap.is-entering {
+  animation: point-in 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes point-out {
+  to { opacity: 0; transform: translateY(-24px); }
+}
+
+@keyframes point-in {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.point-card__num {
+  font-family: var(--mono-label);
+  font-weight: 500;
+  font-size: 72px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #c6c6c6;
+}
+
+.point-card__title {
+  font-weight: 500;
+  font-size: 28px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.point-card__text {
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: 0.01em;
+  color: rgba(2, 2, 2, 0.6);
+  margin-top: -16px;
+}
+
+.point-card__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.point-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 20px;
+  border: 0;
+  background: #ececec;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-align: left;
+  transition: background 0.25s ease;
+}
+
+.point-row:hover { background: #e2e2e2; }
+
+.point-row svg {
+  width: 24px;
+  height: 24px;
+  flex: none;
+}
+
+/* ======================== MISC ======================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-inner { transform: none; }
+  .is-revealed .reveal-inner { animation: none; }
+  [data-fade] { opacity: 1; transform: none; transition: none; }
+  .point-swap.is-leaving, .point-swap.is-entering { animation: none; }
+}

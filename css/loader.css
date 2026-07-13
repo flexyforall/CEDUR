@@ -1,18 +1,20 @@
-/* CEDUR loader — Figma "Concept 2" frames 218:593 / 227:787 / 227:819 / 227:835 */
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-html, body {
-  height: 100%;
-  background: #000;
-  overflow: hidden;
-}
+/* CEDUR loader — card dance from the animo reference video (7s loop:
+   layout A -> B -> C -> A), then the cards assemble into the Figma collage
+   (frame 227:787), the center card grows (227:819 -> 227:835) and its video
+   starts, finally expanding to full screen to reveal the hero. */
 
 .loader {
   position: fixed;
   inset: 0;
   background: #000;
+  z-index: 100;
   cursor: pointer;
+  transition: opacity 0.8s ease;
+}
+
+.loader.is-done {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Fixed 1440×800 design canvas, scaled to cover the viewport by JS */
@@ -26,19 +28,23 @@ html, body {
   transform-origin: center center;
 }
 
-/* ---- Collage tiles ---- */
+/* ---- Cards ---- */
 
 .tile {
   position: absolute;
   overflow: hidden;
   opacity: 0;
-  transform: scale(0.82);
+  /* dance moves: position + size animate together */
   transition:
     opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    left 0.75s cubic-bezier(0.65, 0, 0.35, 1),
+    top 0.75s cubic-bezier(0.65, 0, 0.35, 1),
+    width 0.75s cubic-bezier(0.65, 0, 0.35, 1),
+    height 0.75s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-.tile img {
+.tile img,
+.tile video {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -46,7 +52,7 @@ html, body {
   object-fit: cover;
 }
 
-/* Dimming overlay (frames 3–4) */
+/* Dimming overlay for the side cards (frames 227:819 / 227:835) */
 .tile::after {
   content: "";
   position: absolute;
@@ -56,72 +62,23 @@ html, body {
   transition: opacity 0.9s ease;
 }
 
-/* Figma geometry */
-.tile--54 { left: 347px;  top: 417px; width: 144px; height: 144px; }
-.tile--53 { left: 90px;   top: 135px; width: 216px; height: 216px; }
-.tile--56 { left: 840px;  top: 0;     width: 278px; height: 278px; }
-.tile--58 { left: 1158px; top: 371px; width: 190px; height: 190px; }
-.tile--52 { left: 235px;  top: 627px; width: 184px; height: 184px; }
+.tile--hero { z-index: 5; }
+.tile--hero::after { display: none; }
 
-.tile--54::after { background: rgba(0, 0, 0, 0.5); }
+.tile.is-in { opacity: 1; }
 
-.tile.is-in {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.loader__stage.is-dimmed .tile::after {
+.loader__stage.is-dimmed .tile:not(.tile--hero)::after {
   opacity: 1;
 }
 
-/* ---- Center image ---- */
-
-.hero {
-  position: absolute;
-  /* Frame 2 (227:787): 375×356 centered */
-  left: calc(50% + 0.5px);
-  top: 50%;
-  width: 375px;
-  height: 356px;
-  transform: translate(-50%, -50%) scale(0.82);
-  overflow: hidden;
-  opacity: 0;
-  z-index: 5;
+/* Assemble + growth steps use a slightly longer, softer move */
+.loader__stage.is-settling .tile {
   transition:
     opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    width 1s cubic-bezier(0.65, 0, 0.35, 1),
-    height 1s cubic-bezier(0.65, 0, 0.35, 1),
     left 1s cubic-bezier(0.65, 0, 0.35, 1),
-    top 1s cubic-bezier(0.65, 0, 0.35, 1);
-}
-
-.hero video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.hero.is-in {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
-}
-
-/* Frame 3 (227:819): 637×356, shifted 26.5px left */
-.hero.is-grow-1 {
-  left: calc(50% - 26.5px);
-  width: 637px;
-  height: 356px;
-}
-
-/* Frame 4 (227:835): 1000×558.87 */
-.hero.is-grow-2 {
-  left: 50%;
-  top: calc(50% + 0.43px);
-  width: 1000px;
-  height: 558.87px;
+    top 1s cubic-bezier(0.65, 0, 0.35, 1),
+    width 1s cubic-bezier(0.65, 0, 0.35, 1),
+    height 1s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 /* ---- LOADING wordmark ---- */
@@ -136,12 +93,17 @@ html, body {
   z-index: 10;
   opacity: 0;
   transition: opacity 0.6s ease;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 40px;
+  letter-spacing: 0.06em;
+  text-align: center;
 }
 
 .loading-mark.is-in { opacity: 1; }
-
-/* the kinetic video animates itself; only the text fallback pulses */
-.loading-mark--text { animation: loading-pulse 2.2s ease-in-out infinite; }
+.loading-mark.is-out { opacity: 0; }
 
 .loading-mark video {
   width: 100%;
@@ -150,32 +112,19 @@ html, body {
   display: block;
 }
 
+/* the kinetic video animates itself; only the text fallback pulses */
+.loading-mark--text { animation: loading-pulse 2.2s ease-in-out infinite; }
+
 @keyframes loading-pulse {
   0%, 100% { filter: brightness(1); }
   50%      { filter: brightness(0.55); }
 }
 
-/* Text fallback while loading-logo.png is missing */
-.loading-mark__fallback {
-  display: none;
-  color: #fff;
-  font-family: Arial, Helvetica, sans-serif;
-  font-weight: 800;
-  font-size: 30px;
-  line-height: 40px;
-  letter-spacing: 0.06em;
-  text-align: center;
-  width: 100%;
-}
-
-.loading-mark__fallback b { font-weight: 800; }
-
+.loading-mark__fallback { display: none; }
 .loading-mark--text .loading-mark__fallback { display: block; }
 
-/* ---- Accessibility ---- */
-
 @media (prefers-reduced-motion: reduce) {
-  .tile, .hero, .loading-mark {
+  .tile, .loading-mark, .loader {
     transition: none;
     animation: none;
   }
