@@ -129,7 +129,7 @@ html, body {
 .loading-mark {
   position: absolute;
   left: calc(50% + 0.43px);
-  bottom: 40px;
+  bottom: 72px;
   width: 236.86px;
   height: 40px;
   transform: translateX(-50%);
