@@ -1,0 +1,180 @@
+/* CEDUR loader — Figma "Concept 2" frames 218:593 / 227:787 / 227:819 / 227:835 */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+
+.loader {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  cursor: pointer;
+}
+
+/* Fixed 1440×800 design canvas, scaled to cover the viewport by JS */
+.loader__stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1440px;
+  height: 800px;
+  transform: translate(-50%, -50%) scale(1);
+  transform-origin: center center;
+}
+
+/* ---- Collage tiles ---- */
+
+.tile {
+  position: absolute;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.82);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tile img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Dimming overlay (frames 3–4) */
+.tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+
+/* Figma geometry */
+.tile--54 { left: 347px;  top: 417px; width: 144px; height: 144px; }
+.tile--53 { left: 90px;   top: 135px; width: 216px; height: 216px; }
+.tile--56 { left: 840px;  top: 0;     width: 278px; height: 278px; }
+.tile--58 { left: 1158px; top: 371px; width: 190px; height: 190px; }
+.tile--52 { left: 235px;  top: 627px; width: 184px; height: 184px; }
+
+.tile--54::after { background: rgba(0, 0, 0, 0.5); }
+
+.tile.is-in {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.loader__stage.is-dimmed .tile::after {
+  opacity: 1;
+}
+
+/* ---- Center image ---- */
+
+.hero {
+  position: absolute;
+  /* Frame 2 (227:787): 375×356 centered */
+  left: calc(50% + 0.5px);
+  top: 50%;
+  width: 375px;
+  height: 356px;
+  transform: translate(-50%, -50%) scale(0.82);
+  overflow: hidden;
+  opacity: 0;
+  z-index: 5;
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    width 1s cubic-bezier(0.65, 0, 0.35, 1),
+    height 1s cubic-bezier(0.65, 0, 0.35, 1),
+    left 1s cubic-bezier(0.65, 0, 0.35, 1),
+    top 1s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.hero img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero.is-in {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Frame 3 (227:819): 637×356, shifted 26.5px left */
+.hero.is-grow-1 {
+  left: calc(50% - 26.5px);
+  width: 637px;
+  height: 356px;
+}
+
+/* Frame 4 (227:835): 1000×558.87 */
+.hero.is-grow-2 {
+  left: 50%;
+  top: calc(50% + 0.43px);
+  width: 1000px;
+  height: 558.87px;
+}
+
+/* ---- LOADING wordmark ---- */
+
+.loading-mark {
+  position: absolute;
+  left: calc(50% + 0.43px);
+  bottom: 40px;
+  width: 236.86px;
+  height: 40px;
+  transform: translateX(-50%);
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  animation: loading-pulse 2.2s ease-in-out infinite;
+}
+
+.loading-mark.is-in { opacity: 1; }
+
+.loading-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+@keyframes loading-pulse {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(0.55); }
+}
+
+/* Text fallback while loading-logo.png is missing */
+.loading-mark__fallback {
+  display: none;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 40px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  width: 100%;
+}
+
+.loading-mark__fallback b { font-weight: 800; }
+
+.loading-mark--text .loading-mark__fallback { display: block; }
+
+/* ---- Accessibility ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  .tile, .hero, .loading-mark {
+    transition: none;
+    animation: none;
+  }
+}

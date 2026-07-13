@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CEDUR — Loading</title>
+  <link rel="stylesheet" href="css/loader.css">
+</head>
+<body>
+  <div class="loader" id="loader">
+    <div class="loader__stage" id="stage">
+
+      <!-- Collage images (positions from Figma, 1440×800 canvas) -->
+      <div class="tile tile--53" data-tile>
+        <img src="assets/loader/image-53.png" alt="">
+      </div>
+      <div class="tile tile--56" data-tile>
+        <img src="assets/loader/image-56.png" alt="">
+      </div>
+      <div class="tile tile--58" data-tile>
+        <img src="assets/loader/image-58.png" alt="">
+      </div>
+      <div class="tile tile--52" data-tile>
+        <img src="assets/loader/image-52.png" alt="">
+      </div>
+      <div class="tile tile--54" data-tile>
+        <img src="assets/loader/image-54.png" alt="">
+      </div>
+
+      <!-- Center image: grows 375×356 → 637×356 → 1000×559 -->
+      <div class="hero" id="hero">
+        <img src="assets/loader/hero-house.png" alt="">
+      </div>
+
+      <!-- LOADING wordmark -->
+      <div class="loading-mark" id="loadingMark">
+        <img src="assets/loader/loading-logo.png" alt="Loading"
+             onerror="this.remove(); document.getElementById('loadingMark').classList.add('loading-mark--text')">
+        <span class="loading-mark__fallback" aria-hidden="true">LO<b>&#9650;</b>DING</span>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/loader.js"></script>
+</body>
+</html>
