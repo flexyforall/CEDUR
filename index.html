@@ -27,15 +27,17 @@
         <img src="assets/loader/image-54.png" alt="">
       </div>
 
-      <!-- Center image: grows 375×356 → 637×356 → 1000×559 -->
+      <!-- Center image: grows 375×356 → 637×356 → 1000×559, then the video starts -->
       <div class="hero" id="hero">
-        <img src="assets/loader/hero-house.png" alt="">
+        <video id="heroVideo" src="assets/loader/video-cedur.mp4"
+               poster="assets/loader/hero-house.png"
+               muted playsinline preload="auto"></video>
       </div>
 
-      <!-- LOADING wordmark -->
+      <!-- LOADING wordmark (kinetic video, text fallback) -->
       <div class="loading-mark" id="loadingMark">
-        <img src="assets/loader/loading-logo.png" alt="Loading"
-             onerror="this.remove(); document.getElementById('loadingMark').classList.add('loading-mark--text')">
+        <video src="assets/loader/loading-kinetic.mp4" muted playsinline autoplay loop
+               onerror="this.remove(); document.getElementById('loadingMark').classList.add('loading-mark--text')"></video>
         <span class="loading-mark__fallback" aria-hidden="true">LO<b>&#9650;</b>DING</span>
       </div>
 

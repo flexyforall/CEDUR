@@ -1,14 +1,15 @@
 /* CEDUR loader sequence — plays the four Figma frames as one timeline:
- *   1. black screen, LOADING wordmark fades in            (frame 218:593)
+ *   1. black screen, LOADING kinetic wordmark fades in    (frame 218:593)
  *   2. collage tiles pop in one by one, center image last (frame 227:787)
  *   3. side tiles dim, center image grows to 637×356      (frame 227:819)
- *   4. center image grows to 1000×559                     (frame 227:835)
+ *   4. center grows to 1000×559 and its video starts      (frame 227:835)
  * Click anywhere to replay.
  */
 
 (function () {
   var stage = document.getElementById('stage');
   var hero = document.getElementById('hero');
+  var heroVideo = document.getElementById('heroVideo');
   var mark = document.getElementById('loadingMark');
   var tiles = Array.prototype.slice.call(document.querySelectorAll('[data-tile]'));
   var timers = [];
@@ -33,6 +34,8 @@
     hero.classList.remove('is-in', 'is-grow-1', 'is-grow-2');
     mark.classList.remove('is-in');
     tiles.forEach(function (t) { t.classList.remove('is-in'); });
+    heroVideo.pause();
+    try { heroVideo.currentTime = 0; } catch (e) {}
 
     // force reflow so the reset state is committed before replaying
     void stage.offsetWidth;
@@ -52,8 +55,11 @@
       stage.classList.add('is-dimmed');
     });
 
-    // Frame 4: center grows to its final size
-    at(4900, function () { hero.classList.add('is-grow-2'); });
+    // Frame 4: center grows to its final size and the video comes alive
+    at(4900, function () {
+      hero.classList.add('is-grow-2');
+      heroVideo.play().catch(function () {});
+    });
   }
 
   document.getElementById('loader').addEventListener('click', play);
