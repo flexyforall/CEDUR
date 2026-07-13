@@ -81,17 +81,9 @@ body.is-ready .menu {
 .menu__logo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #fff;
 }
 
-.menu__logo svg { width: 34px; height: 28px; }
-
-.menu__logo span {
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 0.14em;
-}
+.menu__logo svg { width: 50px; height: 40px; }
 
 .menu__links {
   display: flex;

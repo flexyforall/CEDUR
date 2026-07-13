@@ -41,7 +41,8 @@
     C: {
       c53:  [878,  45, 243, 243],
       c56:  [1000, 320, 304, 304],
-      c58:  [654, 595, 151, 151],
+      /* raised from the video position so it never crosses the LOADING mark */
+      c58:  [660, 516, 151, 151],
       c52:  [117, 522, 289, 289],
       c54:  [574, 297, 216, 216],
       hero: [166, 107, 190, 190]
@@ -123,36 +124,37 @@
       at(500 + i * 120, function () { cards[key].classList.add('is-in'); });
     });
 
-    /* the dance: A (hold) -> B (hold) -> C (hold) -> A, like the video loop */
-    at(1900, function () { apply(LAYOUTS.B); });
-    at(4000, function () { apply(LAYOUTS.C); });
-    at(6100, function () { apply(LAYOUTS.A); });
+    /* the dance, timed like the reference video: hold ~1.15s,
+       glide ~1.2s, all cards moving together */
+    at(2400, function () { apply(LAYOUTS.B); });
+    at(4750, function () { apply(LAYOUTS.C); });
+    at(7100, function () { apply(LAYOUTS.A); });
 
     /* assemble into the Figma collage */
-    at(7600, function () {
+    at(9450, function () {
       stage.classList.add('is-settling');
       apply(LAYOUTS.FINAL);
     });
 
     /* center grows, side cards dim */
-    at(9200, function () {
+    at(11250, function () {
       stage.classList.add('is-dimmed');
       apply(LAYOUTS.GROW1);
     });
 
     /* final growth step — the video comes alive */
-    at(10500, function () {
+    at(12750, function () {
       apply(LAYOUTS.GROW2);
       loaderVideo.play().catch(function () {});
     });
 
     /* expand to full screen and hand off to the hero */
-    at(12300, function () {
+    at(14700, function () {
       apply(LAYOUTS.FULL);
       mark.classList.add('is-out');
     });
 
-    at(13300, finish);
+    at(15800, finish);
   }
 
   loader.addEventListener('click', finish);

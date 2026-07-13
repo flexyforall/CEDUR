@@ -38,11 +38,18 @@
   <header class="menu" id="menu">
     <div class="menu__inner">
       <a class="menu__logo" href="#" aria-label="CEDUR">
-        <svg viewBox="0 0 50 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M25 1 47 8v14c0 9-9 14.5-22 17C12 36.5 3 31 3 22V8L25 1Z" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/>
-          <path d="M14 24 25 15l11 9" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg viewBox="0 0 50 40" xmlns="http://www.w3.org/2000/svg" role="img">
+          <defs>
+            <mask id="cedur-cut">
+              <rect width="50" height="40" fill="#fff"/>
+              <text x="25" y="19.5" text-anchor="middle"
+                    font-family="'Arial Narrow', 'Helvetica Neue Condensed', Arial, sans-serif"
+                    font-weight="700" font-size="13.5" letter-spacing="0.4" fill="#000">CEDUR</text>
+              <path d="M25 26.5 31.5 34h-13Z" fill="#000"/>
+            </mask>
+          </defs>
+          <path d="M0 0h50v27.5L25 40 0 27.5Z" fill="#fff" mask="url(#cedur-cut)"/>
         </svg>
-        <span>CEDUR</span>
       </a>
       <nav class="menu__links" aria-label="Main">
         <a href="#">Who We Are</a>

@@ -34,13 +34,14 @@
   position: absolute;
   overflow: hidden;
   opacity: 0;
-  /* dance moves: position + size animate together */
+  /* dance moves: all cards glide together for ~1.2s, straight paths,
+     smooth in, long deceleration — measured from the reference video */
   transition:
     opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    left 0.75s cubic-bezier(0.65, 0, 0.35, 1),
-    top 0.75s cubic-bezier(0.65, 0, 0.35, 1),
-    width 0.75s cubic-bezier(0.65, 0, 0.35, 1),
-    height 0.75s cubic-bezier(0.65, 0, 0.35, 1);
+    left 1.2s cubic-bezier(0.66, 0, 0.22, 1),
+    top 1.2s cubic-bezier(0.66, 0, 0.22, 1),
+    width 1.2s cubic-bezier(0.66, 0, 0.22, 1),
+    height 1.2s cubic-bezier(0.66, 0, 0.22, 1);
 }
 
 .tile img,
@@ -71,14 +72,14 @@
   opacity: 1;
 }
 
-/* Assemble + growth steps use a slightly longer, softer move */
+/* Assemble + growth steps keep the same unhurried glide */
 .loader__stage.is-settling .tile {
   transition:
     opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    left 1s cubic-bezier(0.65, 0, 0.35, 1),
-    top 1s cubic-bezier(0.65, 0, 0.35, 1),
-    width 1s cubic-bezier(0.65, 0, 0.35, 1),
-    height 1s cubic-bezier(0.65, 0, 0.35, 1);
+    left 1.2s cubic-bezier(0.66, 0, 0.22, 1),
+    top 1.2s cubic-bezier(0.66, 0, 0.22, 1),
+    width 1.2s cubic-bezier(0.66, 0, 0.22, 1),
+    height 1.2s cubic-bezier(0.66, 0, 0.22, 1);
 }
 
 /* ---- LOADING wordmark ---- */
@@ -110,6 +111,9 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  /* the kinetic video is white-on-black; screen blending drops the black
+     background so nothing shows even if a card glides underneath */
+  mix-blend-mode: screen;
 }
 
 /* the kinetic video animates itself; only the text fallback pulses */
