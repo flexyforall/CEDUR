@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Risk Calculator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Upload the client brief. Get the risks, what each one is likely to cost you, and what to put in the estimate and the SOW to cover it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&display=swap">
+<style>
+/* Layout: warm paper canvas, centered 1200px column; sections alternate white-card grids and painted accent panels,
+   one midnight "dark island" for the sample report. Icons: Phosphor (regular + duotone), inlined as an SVG sprite. */
+:root {
+  color-scheme: light;
+  /* Color */
+  --canvas: #f6f5f4;        /* Paper Warmth */
+  --surface: #ffffff;       /* card surface */
+  --ink: #000000;
+  --ink-95: rgba(0, 0, 0, 0.95);
+  --ink-60: rgba(0, 0, 0, 0.6);
+  --ink-40: rgba(0, 0, 0, 0.4);
+  --ink-20: rgba(0, 0, 0, 0.2);
+  --graphite: #615d59;      /* warm body text */
+  --slate: #696969;
+  --line: rgba(0, 0, 0, 0.08);
+  --line-strong: rgba(0, 0, 0, 0.16);
+  --blue: #0075de;          /* the one primary action */
+  --blue-hover: #005bab;
+  --sky-tint: #e6f3fe;
+  --signal-blue: #097fe8;
+  --sky: #62aef0;
+  --marigold: #ffb110;
+  --coral: #f64932;
+  --peach: #f6d5b8;
+  --midnight: #02093a;
+  --on-dark: #ffffff;
+  --on-dark-60: rgba(255, 255, 255, 0.64);
+  --on-dark-line: rgba(255, 255, 255, 0.14);
+
+  /* Type */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', serif;
+
+  /* Shape + space */
+  --r-card: 12px;
+  --r-btn: 8px;
+  --r-sm: 4px;
+  --r-pill: 9999px;
+  --gutter: clamp(16px, 4vw, 32px);
+  --section: clamp(64px, 9vw, 112px);
+  --shadow-ui: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-nav: 0 0.7px 1.462px rgba(0, 0, 0, 0.015), 0 3px 9px rgba(0, 0, 0, 0.03);
+  --ease: 200ms ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink-95);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  font-feature-settings: "lnum";
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+img, svg { max-width: 100%; }
+a { color: inherit; }
+h1, h2, h3 { text-wrap: balance; margin: 0; color: var(--ink); }
+p { margin: 0; text-wrap: pretty; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 4px; }
+
+.ic { width: 1em; height: 1em; flex: none; fill: currentColor; vertical-align: -0.125em; }
+
+.wrap {
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+}
+.section { padding-block: var(--section) 0; }
+.section:last-of-type { padding-bottom: var(--section); }
+
+/* ---------- Type scale ---------- */
+.display {
+  font-size: clamp(40px, 7.2vw, 72px);
+  line-height: 1.08;
+  letter-spacing: -0.028em;
+  font-weight: 700;
+}
+.h2 {
+  font-size: clamp(32px, 5vw, 54px);
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  font-weight: 700;
+}
+.h3 { font-size: 22px; line-height: 1.27; letter-spacing: -0.011em; font-weight: 600; }
+.lede {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  line-height: 1.56;
+  color: var(--graphite);
+  max-width: 40ch;
+}
+.body { color: var(--graphite); }
+.label {
+  font-size: 12px;
+  line-height: 1.33;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ink-60);
+}
+.section-head { display: grid; gap: 16px; max-width: 760px; }
+.section-head .lede { max-width: 56ch; font-size: 18px; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 10px 18px;
+  border-radius: var(--r-btn); border: 1px solid transparent;
+  font: 500 15px/1.2 var(--font-sans);
+  text-decoration: none; cursor: pointer;
+  transition: background-color var(--ease), color var(--ease), border-color var(--ease), transform var(--ease);
+}
+.btn .ic { font-size: 16px; transition: transform var(--ease); }
+.btn:hover .ic-arrow { transform: translateX(3px); }
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover { background: var(--blue-hover); }
+.btn-ghost { background: var(--sky-tint); color: var(--blue); }
+.btn-ghost:hover { background: #d4eafd; }
+.btn-outline { background: transparent; color: var(--ink-95); border-color: var(--ink-20); }
+.btn-outline:hover { border-color: var(--ink); }
+.btn-lg { min-height: 48px; padding: 12px 22px; font-size: 16px; }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: var(--r-pill);
+  font-size: 13px; line-height: 1.4; font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ---------- Nav ---------- */
+.nav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: rgba(246, 245, 244, 0.92);
+  backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.4) blur(10px);
+  transition: box-shadow var(--ease);
+}
+.nav.is-stuck { box-shadow: var(--shadow-nav); }
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 600; font-size: 17px; letter-spacing: -0.01em; color: var(--ink); }
+.brand-mark { width: 28px; height: 28px; flex: none; }
+.nav-links { display: flex; align-items: center; gap: 4px; }
+.nav-links a:not(.btn) {
+  padding: 10px 14px; border-radius: var(--r-btn);
+  font-size: 15px; font-weight: 500; text-decoration: none; color: rgba(0, 0, 0, 0.54);
+  transition: color var(--ease), background-color var(--ease);
+}
+.nav-links a:not(.btn):hover { color: var(--ink); background: rgba(0, 0, 0, 0.04); }
+.nav-links .btn { margin-left: 8px; }
+@media (max-width: 760px) { .nav-links a:not(.btn) { display: none; } }
+
+/* ---------- Hero ---------- */
+.hero { position: relative; overflow: hidden; padding-block: clamp(48px, 8vw, 96px) 0; }
+.hero-copy { position: relative; display: grid; justify-items: center; text-align: center; gap: 24px; }
+.hero .display { max-width: 15ch; }
+.hl {
+  display: inline-block;
+  background: var(--peach);
+  border-radius: var(--r-pill);
+  padding: 0 0.26em 0.04em;
+  margin: 0.04em -0.02em;
+}
+.hero .lede { max-width: 46ch; }
+.eyebrow-pill { background: var(--surface); border: 1px solid var(--line); color: var(--graphite); }
+.eyebrow-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--marigold); }
+.cta-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.cta-note { font-size: 14px; color: var(--ink-60); margin-top: -8px; }
+
+.mark { position: absolute; pointer-events: none; }
+.mark-sparkle { top: 6%; left: 7%; width: 44px; height: 44px; color: var(--marigold); }
+.mark-squiggle { top: 14%; right: 6%; width: 92px; }
+.mark-ring { top: 52%; left: 3%; width: 46px; }
+.mark-dots { top: 58%; right: 4%; width: 56px; }
+.mark-sparkle-sm { top: 40%; right: 15%; width: 22px; height: 22px; color: var(--coral); }
+@media (max-width: 600px) { .mark { display: none; } }
+@media (max-width: 860px) { .mark-ring, .mark-dots, .mark-sparkle-sm { display: none; } .mark-sparkle { left: 2%; top: 0; width: 32px; height: 32px; } .mark-squiggle { right: -12px; top: 2%; width: 64px; } }
+@media (prefers-reduced-motion: no-preference) {
+  .mark { animation: float 6s ease-in-out infinite; }
+  .mark-squiggle { animation-delay: -1.5s; }
+  .mark-ring { animation-delay: -3s; }
+  .mark-dots { animation-delay: -4.5s; }
+  .mark-sparkle { animation: twinkle 3.2s cubic-bezier(.34,1.56,.64,1) infinite; }
+  @keyframes float { 50% { transform: translateY(-8px) rotate(3deg); } }
+  @keyframes twinkle { 0%, 100% { transform: scale(1) rotate(0); } 50% { transform: scale(1.18) rotate(18deg); } }
+}
+
+/* Product mockup */
+.mock-stage { position: relative; margin-top: clamp(40px, 6vw, 64px); }
+.mock {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-ui);
+  overflow: hidden;
+}
+.mock-bar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: #fbfbfa; }
+.mock-dots { display: flex; gap: 6px; }
+.mock-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--ink-20); display: block; }
+.mock-crumb { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; color: var(--ink-60); }
+.mock-crumb span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mock-crumb strong { color: var(--ink-95); font-weight: 500; white-space: nowrap; }
+.mock-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
+@media (max-width: 820px) { .mock-body { grid-template-columns: minmax(0, 1fr); } .mock-brief { border-right: 0 !important; border-bottom: 1px solid var(--line); } }
+
+.mock-brief { padding: 24px; border-right: 1px solid var(--line); display: grid; gap: 14px; align-content: start; }
+.doc-title { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; }
+.doc-title .ic { font-size: 20px; color: var(--ink-40); }
+.doc-meta { font-size: 12px; color: var(--ink-40); }
+.ln { height: 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.06); }
+.doc-lines { display: grid; gap: 9px; }
+.snip {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13.5px; line-height: 1.45; color: var(--ink-95);
+  padding: 8px 10px; border-radius: 6px;
+}
+.snip .tag { flex: none; margin-top: 3px; width: 8px; height: 8px; border-radius: 50%; }
+.snip-a { background: #fff1d6; } .snip-a .tag { background: var(--marigold); }
+.snip-b { background: #fde3df; } .snip-b .tag { background: var(--coral); }
+.snip-c { background: var(--sky-tint); } .snip-c .tag { background: var(--signal-blue); }
+
+.mock-report { padding: 24px; display: grid; gap: 20px; align-content: start; }
+.mock-report-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.status { background: #e8f6ee; color: #146c43; }
+.status .ic { font-size: 14px; }
+
+/* Range chart, drawn to one scale: 0–10 weeks */
+.range { display: grid; gap: 8px; }
+.range-track { position: relative; height: 64px; }
+.range-axis { position: absolute; left: 0; right: 0; top: 30px; height: 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.06); }
+.range-band { position: absolute; top: 30px; height: 8px; border-radius: 4px; background: var(--blue); }
+.range-est { position: absolute; top: 22px; width: 2px; height: 24px; background: var(--ink); border-radius: 1px; }
+.range-lbl { position: absolute; font-size: 12px; line-height: 1.3; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.range-lbl.top { top: 0; transform: translateX(-50%); color: var(--ink-60); }
+.range-lbl.bot { top: 46px; transform: translateX(-50%); color: var(--blue); font-weight: 600; }
+.range-ticks { position: relative; height: 16px; font-size: 11px; color: var(--ink-40); font-variant-numeric: tabular-nums; }
+.range-ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.range-ticks span:first-child { transform: none; }
+.range-ticks span:last-child { transform: translateX(-100%); }
+
+.risk-mini { display: grid; gap: 8px; }
+.risk-mini-row {
+  display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+  font-size: 14px;
+}
+.risk-mini-row .tag { width: 8px; height: 8px; border-radius: 50%; }
+.risk-mini-row b { font-weight: 500; }
+.impact { background: rgba(0, 0, 0, 0.05); color: var(--ink-95); font-variant-numeric: tabular-nums; font-size: 12.5px; padding: 3px 10px; }
+
+/* ---------- Pain ---------- */
+.pain-grid { margin-top: 48px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 900px) { .pain-grid { grid-template-columns: minmax(0, 1fr); } }
+.accent-card {
+  border-radius: var(--r-card); padding: 24px;
+  display: grid; grid-template-rows: auto auto 1fr; gap: 16px; color: var(--ink);
+}
+.accent-card .label { color: rgba(0, 0, 0, 0.72); }
+.accent-card p { font-size: 18px; line-height: 1.45; font-weight: 500; letter-spacing: -0.005em; }
+.accent-card svg.illo { width: 100%; height: auto; align-self: end; }
+.bg-coral { background: var(--coral); }
+.bg-marigold { background: var(--marigold); }
+.bg-sky { background: var(--sky); }
+.pain-foot {
+  margin-top: 40px; display: flex; gap: 16px; align-items: flex-start; max-width: 760px;
+  font-family: var(--font-serif); font-size: 22px; line-height: 1.45; color: var(--ink-95);
+}
+.pain-foot .ic { font-size: 28px; color: var(--blue); margin-top: 3px; }
+
+/* ---------- Steps ---------- */
+.steps { margin-top: 48px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; position: relative; }
+@media (max-width: 900px) { .steps { grid-template-columns: minmax(0, 1fr); } }
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 24px;
+}
+.step { display: grid; gap: 12px; align-content: start; transition: transform var(--ease); }
+.step:hover { transform: translateY(-2px); }
+.step-top { display: flex; align-items: center; justify-content: space-between; }
+.step-num {
+  width: 44px; height: 44px; border-radius: 50%; border: 2px solid currentColor; background: var(--surface);
+  display: grid; place-items: center; font-weight: 600; font-size: 16px; font-variant-numeric: tabular-nums;
+}
+.step-icon { font-size: 32px; color: var(--ink-40); }
+.c-blue { color: var(--signal-blue); }
+.c-coral { color: var(--coral); }
+.c-marigold { color: #e89d01; }
+.step h3 { margin-top: 8px; }
+.step-files { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.step-files .pill { background: var(--canvas); color: var(--graphite); font-size: 12.5px; padding: 3px 10px; }
+
+/* ---------- Report (dark island) ---------- */
+.island { background: var(--midnight); border-radius: var(--r-card); color: var(--on-dark); padding: clamp(24px, 5vw, 56px); position: relative; overflow: hidden; }
+.island .h2 { color: var(--on-dark); }
+.island .lede { color: var(--on-dark-60); }
+.island-deco { position: absolute; right: -40px; top: -40px; width: 220px; opacity: 0.9; pointer-events: none; }
+@media (max-width: 700px) { .island-deco { width: 140px; right: -50px; top: -50px; } }
+.report { margin-top: 40px; background: var(--surface); color: var(--ink-95); border-radius: var(--r-card); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35); padding: clamp(20px, 3.5vw, 36px); display: grid; gap: 28px; position: relative; }
+.report-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 24px; align-items: center; }
+.report-title { display: grid; gap: 4px; }
+.report-title strong { font-size: 20px; letter-spacing: -0.01em; }
+.report-title span { font-size: 14px; color: var(--ink-60); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { background: var(--canvas); color: var(--graphite); font-size: 12.5px; padding: 3px 10px; }
+
+.compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 720px) { .compare { grid-template-columns: minmax(0, 1fr); } }
+.compare > div { border-radius: 10px; padding: 18px 20px; display: grid; gap: 4px; }
+.compare .est { border: 1px solid var(--line); }
+.compare .likely { background: var(--sky-tint); }
+.compare .likely .label { color: var(--blue); }
+.compare .num { font-size: clamp(22px, 3vw, 30px); line-height: 1.2; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.compare .likely .num { color: var(--blue); }
+.compare .sub { font-size: 18px; font-weight: 500; color: var(--ink-60); font-variant-numeric: tabular-nums; }
+.compare .likely .sub { color: #0a5ea8; }
+
+.risk-table { display: grid; border-top: 1px solid var(--line); }
+.risk-row {
+  display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.7fr) minmax(0, 1.4fr); gap: 16px 32px;
+  padding: 20px 0; border-bottom: 1px solid var(--line); align-items: start;
+}
+.risk-row.head { padding: 12px 0; }
+@media (max-width: 760px) {
+  .risk-row { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .risk-row.head { display: none; }
+}
+.risk-name { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; }
+.risk-name .sev { grid-row: span 2; width: 4px; border-radius: 2px; align-self: stretch; }
+.risk-name strong { font-size: 17px; font-weight: 600; color: var(--ink); }
+.risk-name span { font-size: 15px; color: var(--graphite); }
+.risk-impact .pill { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 14px; }
+.sev-high { background: var(--coral); }
+.sev-med { background: var(--marigold); }
+.sev-low { background: var(--sky); }
+.imp-high { background: #fde3df; color: #a8240f; }
+.imp-med { background: #fff1d6; color: #8a5600; }
+.imp-low { background: var(--sky-tint); color: #0a5ea8; }
+.risk-fix { display: flex; gap: 10px; font-size: 15px; color: var(--ink-95); }
+.risk-fix .ic { font-size: 18px; color: var(--blue); margin-top: 2px; }
+.m-label { display: none; }
+@media (max-width: 760px) { .m-label { display: block; margin-bottom: 2px; } }
+
+.asks { display: grid; gap: 12px; }
+.ask-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ask-list li { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 18px; background: var(--canvas); font-size: 14.5px; }
+.ask-list .ic { color: var(--blue); font-size: 16px; }
+.report-note { font-size: 13px; color: var(--ink-40); }
+
+/* ---------- Features ---------- */
+.features { margin-top: 48px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 800px) { .features { grid-template-columns: minmax(0, 1fr); } }
+.feature { padding: 8px; display: grid; grid-template-rows: auto 1fr; transition: border-color var(--ease); }
+.feature:hover { border-color: var(--line-strong); }
+.feature-art { border-radius: 8px; aspect-ratio: 16 / 7; max-width: 100%; display: grid; place-items: center; overflow: hidden; }
+.feature-art svg { width: 100%; height: 100%; }
+.feature-copy { padding: 20px 16px 16px; display: grid; gap: 8px; align-content: start; }
+.feature-copy .h3 { display: flex; align-items: center; gap: 10px; }
+.feature-copy .h3 .ic { font-size: 24px; color: var(--blue); }
+.bg-sky-tint { background: var(--sky-tint); }
+.bg-midnight { background: var(--midnight); }
+
+/* ---------- Fit ---------- */
+.fit-grid { margin-top: 48px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 800px) { .fit-grid { grid-template-columns: minmax(0, 1fr); } }
+.fit { display: grid; gap: 14px; align-content: start; }
+.fit-head { display: flex; align-items: center; gap: 10px; }
+.fit-head .ic { font-size: 24px; }
+.fit p { font-size: 18px; line-height: 1.5; color: var(--ink-95); }
+.fit.no { background: transparent; border: 1.5px dashed var(--ink-20); }
+.fit.no p { color: var(--graphite); }
+.fit-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.fit-tags .pill { background: var(--canvas); color: var(--graphite); }
+.fit.no .fit-tags .pill { background: rgba(0, 0, 0, 0.04); text-decoration: line-through; text-decoration-color: var(--ink-20); }
+
+.quote { margin-top: 48px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 20px; align-items: start; max-width: 820px; }
+.avatar { width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--coral); background: var(--surface); display: grid; place-items: center; overflow: hidden; }
+.quote blockquote { margin: 0; font-family: var(--font-serif); font-size: clamp(22px, 2.6vw, 28px); line-height: 1.4; color: var(--ink); letter-spacing: -0.005em; }
+.quote cite { display: block; margin-top: 12px; font-style: normal; font-size: 14px; color: var(--ink-60); }
+
+/* ---------- Pricing ---------- */
+.price-grid { margin-top: 48px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+@media (max-width: 900px) { .price-grid { grid-template-columns: minmax(0, 1fr); } }
+.plan { display: flex; flex-direction: column; gap: 20px; padding: 28px; }
+.plan.featured { border: 2px solid var(--blue); padding: 27px; }
+.plan-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.plan-name { font-size: 18px; font-weight: 600; }
+.plan-for { font-size: 14px; color: var(--ink-60); margin-top: -12px; }
+.price { font-size: 48px; line-height: 1; font-weight: 700; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; color: var(--ink); }
+.price span { font-size: 16px; font-weight: 400; letter-spacing: 0; color: var(--ink-60); }
+.plan ul { list-style: none; margin: 0; padding: 20px 0 0; border-top: 1px solid var(--line); display: grid; gap: 12px; flex-grow: 1; align-content: start; }
+.plan li { display: flex; gap: 10px; font-size: 15px; }
+.plan li .ic { font-size: 18px; color: var(--blue); margin-top: 2px; }
+.plan .btn { width: 100%; }
+.price-note { margin-top: 20px; font-size: 14px; color: var(--ink-60); display: flex; gap: 8px; align-items: center; }
+
+/* ---------- Access + FAQ ---------- */
+.access { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 80px); align-items: start; }
+@media (max-width: 900px) { .access { grid-template-columns: minmax(0, 1fr); } }
+.form { margin-top: 32px; padding: clamp(20px, 3vw, 28px); display: grid; gap: 18px; }
+.field { display: grid; gap: 6px; }
+.field label { font-size: 14px; font-weight: 500; color: var(--ink-95); }
+.input-wrap { position: relative; }
+.input-wrap .ic { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--ink-40); pointer-events: none; }
+.field input, .field textarea {
+  width: 100%; font: 400 16px/1.5 var(--font-sans); color: var(--ink-95);
+  background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-btn);
+  padding: 11px 14px; transition: border-color var(--ease), box-shadow var(--ease);
+}
+.input-wrap input { padding-left: 42px; }
+.field textarea { min-height: 112px; resize: vertical; }
+.field input::placeholder, .field textarea::placeholder { color: var(--ink-40); }
+.field input:focus, .field textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0, 117, 222, 0.18); }
+.field input[aria-invalid="true"] { border-color: var(--coral); }
+.err { font-size: 13px; color: #c42810; }
+.check { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; padding: 14px; border-radius: var(--r-btn); background: var(--canvas); }
+.check input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--blue); }
+.check label { font-size: 15px; line-height: 1.45; }
+.form .btn { justify-self: start; }
+.success { display: grid; gap: 8px; justify-items: start; padding: 4px 0; }
+.success .ic { font-size: 40px; color: var(--blue); }
+.success strong { font-size: 20px; color: var(--ink); }
+
+.faq { display: grid; border-top: 1px solid var(--line-strong); margin-top: 24px; }
+.faq details { border-bottom: 1px solid var(--line-strong); }
+.faq summary {
+  list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  padding: 20px 0; font-size: 17px; font-weight: 600; color: var(--ink);
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary .ic { font-size: 20px; color: var(--ink-40); transition: transform var(--ease), color var(--ease); }
+.faq summary:hover .ic { color: var(--ink); }
+.faq details[open] summary .ic { transform: rotate(45deg); color: var(--blue); }
+.faq details p { padding: 0 32px 20px 0; color: var(--graphite); font-size: 15.5px; line-height: 1.6; }
+
+/* ---------- Footer ---------- */
+.footer { border-top: 1px solid var(--line); padding-block: 32px; }
+.footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; font-size: 14px; color: var(--ink-60); }
+.footer nav { display: flex; gap: 4px; }
+.footer nav a { padding: 10px 12px; border-radius: var(--r-btn); text-decoration: none; transition: color var(--ease), background-color var(--ease); }
+.footer nav a:hover { color: var(--ink); background: rgba(0, 0, 0, 0.04); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+<!--SPRITE--><svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-arrow-right" viewBox="0 0 256 256"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></symbol><symbol id="i-caret-right" viewBox="0 0 256 256"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></symbol><symbol id="i-chart-bar-horizontal-duotone" viewBox="0 0 256 256"><path d="M224,104v48H48V104Z" opacity="0.2"/><path d="M224,96H184V56a8,8,0,0,0-8-8H56V40a8,8,0,0,0-16,0V216a8,8,0,0,0,16,0v-8h88a8,8,0,0,0,8-8V160h72a8,8,0,0,0,8-8V104A8,8,0,0,0,224,96ZM168,64V96H56V64ZM136,192H56V160h80Zm80-48H56V112H216Z"/></symbol><symbol id="i-chart-line-up-duotone" viewBox="0 0 256 256"><path d="M224,64V208H32V48H208A16,16,0,0,1,224,64Z" opacity="0.2"/><path d="M232,208a8,8,0,0,1-8,8H32a8,8,0,0,1-8-8V48a8,8,0,0,1,16,0V156.69l50.34-50.35a8,8,0,0,1,11.32,0L128,132.69,180.69,80H160a8,8,0,0,1,0-16h40a8,8,0,0,1,8,8v40a8,8,0,0,1-16,0V91.31l-58.34,58.35a8,8,0,0,1-11.32,0L96,123.31l-56,56V200H224A8,8,0,0,1,232,208Z"/></symbol><symbol id="i-chat-circle-dots-duotone" viewBox="0 0 256 256"><path d="M224,128A96,96,0,0,1,79.93,211.11h0L42.54,223.58a8,8,0,0,1-10.12-10.12l12.47-37.39h0A96,96,0,1,1,224,128Z" opacity="0.2"/><path d="M128,24A104,104,0,0,0,36.18,176.88L24.83,210.93a16,16,0,0,0,20.24,20.24l34.05-11.35A104,104,0,1,0,128,24Zm0,192a87.87,87.87,0,0,1-44.06-11.81,8,8,0,0,0-4-1.08,7.85,7.85,0,0,0-2.53.42L40,216,52.47,178.6a8,8,0,0,0-.66-6.54A88,88,0,1,1,128,216Zm12-88a12,12,0,1,1-12-12A12,12,0,0,1,140,128Zm-44,0a12,12,0,1,1-12-12A12,12,0,0,1,96,128Zm88,0a12,12,0,1,1-12-12A12,12,0,0,1,184,128Z"/></symbol><symbol id="i-chats-circle-duotone" viewBox="0 0 256 256"><path d="M231.66,213.73a8,8,0,0,1-9.93,9.93L194,215.5A72.05,72.05,0,0,1,92.06,175.89h0c1.31.07,2.62.11,3.94.11a72,72,0,0,0,67.93-95.88h0A72,72,0,0,1,223.5,186Z" opacity="0.2"/><path d="M232.07,186.76a80,80,0,0,0-62.5-114.17A80,80,0,1,0,23.93,138.76l-7.27,24.71a16,16,0,0,0,19.87,19.87l24.71-7.27a80.39,80.39,0,0,0,25.18,7.35,80,80,0,0,0,108.34,40.65l24.71,7.27a16,16,0,0,0,19.87-19.86ZM62,159.5a8.28,8.28,0,0,0-2.26.32L32,168l8.17-27.76a8,8,0,0,0-.63-6,64,64,0,1,1,26.26,26.26A8,8,0,0,0,62,159.5Zm153.79,28.73L224,216l-27.76-8.17a8,8,0,0,0-6,.63,64.05,64.05,0,0,1-85.87-24.88A79.93,79.93,0,0,0,174.7,89.71a64,64,0,0,1,41.75,92.48A8,8,0,0,0,215.82,188.23Z"/></symbol><symbol id="i-check" viewBox="0 0 256 256"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></symbol><symbol id="i-check-circle" viewBox="0 0 256 256"><path d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"/></symbol><symbol id="i-check-circle-fill" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm45.66,85.66-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32Z"/></symbol><symbol id="i-clipboard-text-duotone" viewBox="0 0 256 256"><path d="M208,48V216a8,8,0,0,1-8,8H56a8,8,0,0,1-8-8V48a8,8,0,0,1,8-8H96a39.83,39.83,0,0,0-8,24v8h80V64a39.83,39.83,0,0,0-8-24h40A8,8,0,0,1,208,48Z" opacity="0.2"/><path d="M168,152a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,152Zm-8-40H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16Zm56-64V216a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V48A16,16,0,0,1,56,32H92.26a47.92,47.92,0,0,1,71.48,0H200A16,16,0,0,1,216,48ZM96,64h64a32,32,0,0,0-64,0ZM200,48H173.25A47.93,47.93,0,0,1,176,64v8a8,8,0,0,1-8,8H88a8,8,0,0,1-8-8V64a47.93,47.93,0,0,1,2.75-16H56V216H200Z"/></symbol><symbol id="i-envelope-simple" viewBox="0 0 256 256"><path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM203.43,64,128,133.15,52.57,64ZM216,192H40V74.19l82.59,75.71a8,8,0,0,0,10.82,0L216,74.19V192Z"/></symbol><symbol id="i-file-arrow-up-duotone" viewBox="0 0 256 256"><path d="M208,88H152V32Z" opacity="0.2"/><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-42.34-77.66a8,8,0,0,1-11.32,11.32L136,139.31V184a8,8,0,0,1-16,0V139.31l-10.34,10.35a8,8,0,0,1-11.32-11.32l24-24a8,8,0,0,1,11.32,0Z"/></symbol><symbol id="i-file-text" viewBox="0 0 256 256"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z"/></symbol><symbol id="i-globe-simple" viewBox="0 0 256 256"><path d="M128,24h0A104,104,0,1,0,232,128,104.12,104.12,0,0,0,128,24Zm87.62,96H175.79C174,83.49,159.94,57.67,148.41,42.4A88.19,88.19,0,0,1,215.63,120ZM96.23,136h63.54c-2.31,41.61-22.23,67.11-31.77,77C118.45,203.1,98.54,177.6,96.23,136Zm0-16C98.54,78.39,118.46,52.89,128,43c9.55,9.93,29.46,35.43,31.77,77Zm11.36-77.6C96.06,57.67,82,83.49,80.21,120H40.37A88.19,88.19,0,0,1,107.59,42.4ZM40.37,136H80.21c1.82,36.51,15.85,62.33,27.38,77.6A88.19,88.19,0,0,1,40.37,136Zm108,77.6c11.53-15.27,25.56-41.09,27.38-77.6h39.84A88.19,88.19,0,0,1,148.41,213.6Z"/></symbol><symbol id="i-magnifying-glass" viewBox="0 0 256 256"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></symbol><symbol id="i-pencil-simple-line" viewBox="0 0 256 256"><path d="M227.32,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H216a8,8,0,0,0,0-16H115.32l112-112A16,16,0,0,0,227.32,73.37ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.69,147.32,64l24-24L216,84.69Z"/></symbol><symbol id="i-plus" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></symbol><symbol id="i-question" viewBox="0 0 256 256"><path d="M140,180a12,12,0,1,1-12-12A12,12,0,0,1,140,180ZM128,72c-22.06,0-40,16.15-40,36v4a8,8,0,0,0,16,0v-4c0-11,10.77-20,24-20s24,9,24,20-10.77,20-24,20a8,8,0,0,0-8,8v8a8,8,0,0,0,16,0v-.72c18.24-3.35,32-17.9,32-35.28C168,88.15,150.06,72,128,72Zm104,56A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"/></symbol><symbol id="i-seal-check-duotone" viewBox="0 0 256 256"><path d="M232,128c0,12.51-17.82,21.95-22.68,33.69-4.68,11.32,1.42,30.65-7.78,39.85s-28.53,3.1-39.85,7.78C150,214.18,140.5,232,128,232s-22-17.82-33.69-22.68c-11.32-4.68-30.65,1.42-39.85-7.78s-3.1-28.53-7.78-39.85C41.82,150,24,140.5,24,128s17.82-22,22.68-33.69C51.36,83,45.26,63.66,54.46,54.46S83,51.36,94.31,46.68C106.05,41.82,115.5,24,128,24S150,41.82,161.69,46.68c11.32,4.68,30.65-1.42,39.85,7.78s3.1,28.53,7.78,39.85C214.18,106.05,232,115.5,232,128Z" opacity="0.2"/><path d="M225.86,102.82c-3.77-3.94-7.67-8-9.14-11.57-1.36-3.27-1.44-8.69-1.52-13.94-.15-9.76-.31-20.82-8-28.51s-18.75-7.85-28.51-8c-5.25-.08-10.67-.16-13.94-1.52-3.56-1.47-7.63-5.37-11.57-9.14C146.28,23.51,138.44,16,128,16s-18.27,7.51-25.18,14.14c-3.94,3.77-8,7.67-11.57,9.14C88,40.64,82.56,40.72,77.31,40.8c-9.76.15-20.82.31-28.51,8S41,67.55,40.8,77.31c-.08,5.25-.16,10.67-1.52,13.94-1.47,3.56-5.37,7.63-9.14,11.57C23.51,109.72,16,117.56,16,128s7.51,18.27,14.14,25.18c3.77,3.94,7.67,8,9.14,11.57,1.36,3.27,1.44,8.69,1.52,13.94.15,9.76.31,20.82,8,28.51s18.75,7.85,28.51,8c5.25.08,10.67.16,13.94,1.52,3.56,1.47,7.63,5.37,11.57,9.14C109.72,232.49,117.56,240,128,240s18.27-7.51,25.18-14.14c3.94-3.77,8-7.67,11.57-9.14,3.27-1.36,8.69-1.44,13.94-1.52,9.76-.15,20.82-.31,28.51-8s7.85-18.75,8-28.51c.08-5.25.16-10.67,1.52-13.94,1.47-3.56,5.37-7.63,9.14-11.57C232.49,146.28,240,138.44,240,128S232.49,109.73,225.86,102.82Zm-11.55,39.29c-4.79,5-9.75,10.17-12.38,16.52-2.52,6.1-2.63,13.07-2.73,19.82-.1,7-.21,14.33-3.32,17.43s-10.39,3.22-17.43,3.32c-6.75.1-13.72.21-19.82,2.73-6.35,2.63-11.52,7.59-16.52,12.38S132,224,128,224s-9.15-4.92-14.11-9.69-10.17-9.75-16.52-12.38c-6.1-2.52-13.07-2.63-19.82-2.73-7-.1-14.33-.21-17.43-3.32s-3.22-10.39-3.32-17.43c-.1-6.75-.21-13.72-2.73-19.82-2.63-6.35-7.59-11.52-12.38-16.52S32,132,32,128s4.92-9.15,9.69-14.11,9.75-10.17,12.38-16.52c2.52-6.1,2.63-13.07,2.73-19.82.1-7,.21-14.33,3.32-17.43S70.51,56.9,77.55,56.8c6.75-.1,13.72-.21,19.82-2.73,6.35-2.63,11.52-7.59,16.52-12.38S124,32,128,32s9.15,4.92,14.11,9.69,10.17,9.75,16.52,12.38c6.1,2.52,13.07,2.63,19.82,2.73,7,.1,14.33.21,17.43,3.32s3.22,10.39,3.32,17.43c.1,6.75.21,13.72,2.73,19.82,2.63,6.35,7.59,11.52,12.38,16.52S224,124,224,128,219.08,137.15,214.31,142.11ZM173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34Z"/></symbol><symbol id="i-sparkle-fill" viewBox="0 0 256 256"><path d="M208,144a15.78,15.78,0,0,1-10.42,14.94L146,178l-19,51.62a15.92,15.92,0,0,1-29.88,0L78,178l-51.62-19a15.92,15.92,0,0,1,0-29.88L78,110l19-51.62a15.92,15.92,0,0,1,29.88,0L146,110l51.62,19A15.78,15.78,0,0,1,208,144ZM152,48h16V64a8,8,0,0,0,16,0V48h16a8,8,0,0,0,0-16H184V16a8,8,0,0,0-16,0V32H152a8,8,0,0,0,0,16Zm88,32h-8V72a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16h8v8a8,8,0,0,0,16,0V96h8a8,8,0,0,0,0-16Z"/></symbol><symbol id="i-tag-duotone" viewBox="0 0 256 256"><path d="M237.66,153,153,237.66a8,8,0,0,1-11.31,0L42.34,138.34A8,8,0,0,1,40,132.69V40h92.69a8,8,0,0,1,5.65,2.34l99.32,99.32A8,8,0,0,1,237.66,153Z" opacity="0.2"/><path d="M243.31,136,144,36.69A15.86,15.86,0,0,0,132.69,32H40a8,8,0,0,0-8,8v92.69A15.86,15.86,0,0,0,36.69,144L136,243.31a16,16,0,0,0,22.63,0l84.68-84.68a16,16,0,0,0,0-22.63Zm-96,96L48,132.69V48h84.69L232,147.31ZM96,84A12,12,0,1,1,84,72,12,12,0,0,1,96,84Z"/></symbol><symbol id="i-x-circle" viewBox="0 0 256 256"><path d="M165.66,101.66,139.31,128l26.35,26.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35a8,8,0,0,1,11.32,11.32ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"/></symbol></svg><!--/SPRITE-->
+
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Risk Calculator home">
+      <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true">
+        <rect width="28" height="28" rx="8" fill="#0075de"/>
+        <rect x="6" y="9" width="10" height="3" rx="1.5" fill="#ffffff"/>
+        <rect x="6" y="16" width="16" height="3" rx="1.5" fill="#ffffff" opacity="0.55"/>
+        <circle cx="20.5" cy="10.5" r="2.5" fill="#ffb110"/>
+      </svg>
+      Risk Calculator
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#how">How it works</a>
+      <a href="#report">Sample report</a>
+      <a href="#pricing">Pricing</a>
+      <a class="btn btn-primary" href="#access">Get early access</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-copy">
+      <svg class="mark mark-sparkle" aria-hidden="true"><use href="#i-sparkle-fill"/></svg>
+      <svg class="mark mark-squiggle" viewBox="0 0 92 24" fill="none" aria-hidden="true"><path d="M3 12c6-9 12-9 17 0s11 9 17 0 12-9 17 0 11 9 17 0 11-9 17 0" stroke="#0075de" stroke-width="3" stroke-linecap="round"/></svg>
+      <svg class="mark mark-ring" viewBox="0 0 46 46" fill="none" aria-hidden="true"><circle cx="23" cy="23" r="18" stroke="#f64932" stroke-width="3"/><circle cx="23" cy="23" r="6" fill="#f64932"/></svg>
+      <svg class="mark mark-dots" viewBox="0 0 56 56" aria-hidden="true"><g fill="#62aef0"><circle cx="8" cy="8" r="4"/><circle cx="28" cy="8" r="4"/><circle cx="48" cy="8" r="4"/><circle cx="8" cy="28" r="4"/><circle cx="28" cy="28" r="4"/><circle cx="48" cy="28" r="4"/><circle cx="8" cy="48" r="4"/><circle cx="28" cy="48" r="4"/></g><circle cx="48" cy="48" r="5" fill="#ffb110"/></svg>
+      <svg class="mark mark-sparkle-sm" aria-hidden="true"><use href="#i-sparkle-fill"/></svg>
+
+      <span class="pill eyebrow-pill"><span class="dot"></span>Early access · For design and Webflow studios</span>
+      <h1 class="display">Know how far a project will <span class="hl">run over</span> before you send the proposal</h1>
+      <p class="lede">Upload the client brief. Get the risks, what each one is likely to cost you, and what to put in the estimate and the SOW to cover it.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary btn-lg" href="#access">Get early access <svg class="ic ic-arrow"><use href="#i-arrow-right"/></svg></a>
+        <a class="btn btn-ghost btn-lg" href="#report">See a sample report</a>
+      </div>
+      <p class="cta-note">In development. Join the list and help shape it.</p>
+    </div>
+
+    <div class="mock-stage">
+      <div class="mock" role="img" aria-label="Product preview: a client brief with three highlighted passages on the left, and the risk report on the right showing a 6-week estimate against a likely range of 7.5 to 9 weeks.">
+        <div class="mock-bar">
+          <div class="mock-dots"><i></i><i></i><i></i></div>
+          <div class="mock-crumb"><span>Northwind · Marketing site redesign</span><svg class="ic"><use href="#i-caret-right"/></svg><strong>Risk report</strong></div>
+        </div>
+        <div class="mock-body">
+          <div class="mock-brief">
+            <div>
+              <div class="doc-title"><svg class="ic"><use href="#i-file-text"/></svg>Website brief v2.pdf</div>
+              <div class="doc-meta">3 pages · uploaded just now</div>
+            </div>
+            <div class="doc-lines"><div class="ln" style="width:92%"></div><div class="ln" style="width:78%"></div></div>
+            <div class="snip snip-a"><span class="tag"></span><span>“Sign-off by our marketing lead, with input from Dana and the team.”</span></div>
+            <div class="doc-lines"><div class="ln" style="width:86%"></div><div class="ln" style="width:64%"></div></div>
+            <div class="snip snip-b"><span class="tag"></span><span>“Copy is in progress and should be ready for kickoff.”</span></div>
+            <div class="doc-lines"><div class="ln" style="width:94%"></div><div class="ln" style="width:70%"></div><div class="ln" style="width:82%"></div></div>
+            <div class="snip snip-c"><span class="tag"></span><span>“We’ll iterate on designs until we’re happy.”</span></div>
+            <div class="doc-lines"><div class="ln" style="width:58%"></div></div>
+          </div>
+          <div class="mock-report">
+            <div class="mock-report-head">
+              <span class="label">Timeline</span>
+              <span class="pill status"><svg class="ic"><use href="#i-check-circle"/></svg>3 risks found</span>
+            </div>
+            <div class="range">
+              <div class="range-track">
+                <div class="range-axis"></div>
+                <div class="range-band" style="left:75%;width:15%"></div>
+                <div class="range-est" style="left:calc(60% - 1px)"></div>
+                <span class="range-lbl top" style="left:60%">Your estimate · 6 wk</span>
+                <span class="range-lbl bot" style="left:82.5%">Likely 7.5–9 wk</span>
+              </div>
+              <div class="range-ticks"><span style="left:0">0</span><span style="left:20%">2</span><span style="left:40%">4</span><span style="left:60%">6</span><span style="left:80%">8</span><span style="left:100%">10 wk</span></div>
+            </div>
+            <div class="risk-mini">
+              <div class="risk-mini-row"><span class="tag" style="background:#ffb110"></span><b>Approval chain</b><span class="pill impact">+1–1.5 wk</span></div>
+              <div class="risk-mini-row"><span class="tag" style="background:#f64932"></span><b>Content readiness</b><span class="pill impact">+0.5–1.5 wk</span></div>
+              <div class="risk-mini-row"><span class="tag" style="background:#097fe8"></span><b>Open-ended revisions</b><span class="pill impact">+10–15% hrs</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PAIN ================= -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 class="h2">The estimate was fine. The project wasn’t.</h2>
+    </div>
+    <div class="pain-grid">
+      <article class="accent-card bg-coral">
+        <span class="label">Timeline</span>
+        <p>You quoted six weeks and delivered in eleven. Nobody changed the scope on paper.</p>
+        <!-- scale: 20px per week -->
+        <svg class="illo" viewBox="0 0 244 72" role="img" aria-label="Quoted 6 weeks against 11 weeks delivered">
+          <rect x="2" y="4" width="120" height="22" rx="6" fill="#ffffff"/>
+          <text x="12" y="19" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#000">Quoted · 6 wk</text>
+          <rect x="2" y="32" width="220" height="22" rx="6" fill="#000000"/>
+          <text x="12" y="47" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#fff">Delivered · 11 wk</text>
+          <line x1="122" y1="0" x2="122" y2="60" stroke="#000" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <g fill="#000" opacity="0.5"><rect x="2" y="64" width="1.5" height="6"/><rect x="42" y="64" width="1.5" height="6"/><rect x="82" y="64" width="1.5" height="6"/><rect x="122" y="64" width="1.5" height="6"/><rect x="162" y="64" width="1.5" height="6"/><rect x="202" y="64" width="1.5" height="6"/><rect x="242" y="64" width="1.5" height="6"/></g>
+        </svg>
+      </article>
+      <article class="accent-card bg-marigold">
+        <span class="label">Approvals</span>
+        <p>Five people on the client side had opinions. The brief mentioned one.</p>
+        <svg class="illo" viewBox="0 0 244 72" role="img" aria-label="One named approver and four more reviewers">
+          <circle cx="30" cy="36" r="24" fill="#000"/>
+          <circle cx="30" cy="30" r="7" fill="#ffb110"/>
+          <path d="M17 50a13 13 0 0 1 26 0" fill="#ffb110"/>
+          <g fill="#ffffff" stroke="#000" stroke-width="2">
+            <circle cx="104" cy="36" r="22"/><circle cx="138" cy="36" r="22"/><circle cx="172" cy="36" r="22"/><circle cx="206" cy="36" r="22"/>
+          </g>
+          <g font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#000" text-anchor="middle">
+            <text x="104" y="42">?</text><text x="138" y="42">?</text><text x="172" y="42">?</text><text x="206" y="42">?</text>
+          </g>
+          <path d="M62 36h16" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 5"/>
+        </svg>
+      </article>
+      <article class="accent-card bg-sky">
+        <span class="label">Content</span>
+        <p>The content was “almost ready” at kickoff. It arrived in week seven.</p>
+        <svg class="illo" viewBox="0 0 244 72" role="img" aria-label="Seven weeks, content arriving in the last one">
+          <g fill="none" stroke="#000" stroke-width="1.5" stroke-dasharray="3 3">
+            <rect x="2" y="6" width="26" height="34" rx="5"/><rect x="38" y="6" width="26" height="34" rx="5"/><rect x="74" y="6" width="26" height="34" rx="5"/><rect x="110" y="6" width="26" height="34" rx="5"/><rect x="146" y="6" width="26" height="34" rx="5"/><rect x="182" y="6" width="26" height="34" rx="5"/>
+          </g>
+          <rect x="216" y="2" width="26" height="42" rx="5" fill="#000"/>
+          <g fill="#62aef0"><rect x="221" y="11" width="16" height="3" rx="1.5"/><rect x="221" y="18" width="12" height="3" rx="1.5"/><rect x="221" y="25" width="16" height="3" rx="1.5"/><rect x="221" y="32" width="9" height="3" rx="1.5"/></g>
+          <g font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#000"><text x="2" y="62">wk 1</text><text x="242" y="62" text-anchor="end">wk 7</text></g>
+        </svg>
+      </article>
+    </div>
+    <p class="pain-foot"><svg class="ic"><use href="#i-magnifying-glass"/></svg><span>A lot of this shows up in the brief and the first few emails. Nobody has time to look for it.</span></p>
+  </div>
+</section>
+
+<!-- ================= HOW ================= -->
+<section class="section" id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="label">How it works</span>
+      <h2 class="h2">From brief to risk report in three steps</h2>
+    </div>
+    <div class="steps">
+      <article class="card step">
+        <div class="step-top"><span class="step-num c-blue">1</span><svg class="ic step-icon"><use href="#i-file-arrow-up-duotone"/></svg></div>
+        <h3 class="h3">Upload what you have</h3>
+        <p class="body">The brief, the RFP, the email thread. A thin brief is fine.</p>
+        <div class="step-files"><span class="pill">brief.pdf</span><span class="pill">RFP.docx</span><span class="pill">email thread</span></div>
+      </article>
+      <article class="card step">
+        <div class="step-top"><span class="step-num c-coral">2</span><svg class="ic step-icon"><use href="#i-chat-circle-dots-duotone"/></svg></div>
+        <h3 class="h3">Answer a few questions</h3>
+        <p class="body">Risk Calculator finds the gaps and asks what’s missing. Whatever you can’t answer becomes a question for your client.</p>
+      </article>
+      <article class="card step">
+        <div class="step-top"><span class="step-num c-marigold">3</span><svg class="ic step-icon"><use href="#i-chart-bar-horizontal-duotone"/></svg></div>
+        <h3 class="h3">Get the report</h3>
+        <p class="body">Risks ranked by likely cost, a realistic range for time and budget, and what to change in the proposal.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= REPORT ================= -->
+<section class="section" id="report">
+  <div class="wrap">
+    <div class="island">
+      <svg class="island-deco" viewBox="0 0 220 220" fill="none" aria-hidden="true">
+        <circle cx="110" cy="110" r="80" stroke="#62aef0" stroke-width="2" stroke-dasharray="4 8"/>
+        <circle cx="110" cy="110" r="48" stroke="#097fe8" stroke-width="2"/>
+        <circle cx="158" cy="62" r="10" fill="#ffb110"/>
+        <circle cx="62" cy="158" r="6" fill="#f64932"/>
+      </svg>
+      <div class="section-head">
+        <span class="label" style="color:var(--on-dark-60)">Sample report</span>
+        <h2 class="h2">What you get</h2>
+        <p class="lede">One report per project, ready before you write the proposal.</p>
+      </div>
+
+      <div class="report">
+        <div class="report-head">
+          <div class="report-title">
+            <strong>Marketing site redesign</strong>
+            <span>Risk report · generated from 3 documents</span>
+          </div>
+          <div class="chips"><span class="pill chip">Series A SaaS</span><span class="pill chip">14 pages</span><span class="pill chip">Webflow</span></div>
+        </div>
+
+        <div class="compare">
+          <div class="est">
+            <span class="label">Your estimate</span>
+            <span class="num">6 weeks</span><span class="sub">$24,000</span>
+          </div>
+          <div class="likely">
+            <span class="label">Likely range</span>
+            <span class="num">7.5–9 weeks</span><span class="sub">$27,000–$31,000</span>
+          </div>
+        </div>
+
+        <div class="risk-table" role="table" aria-label="Risks ranked by likely cost">
+          <div class="risk-row head" role="row">
+            <span class="label" role="columnheader">Risk</span>
+            <span class="label" role="columnheader">Impact</span>
+            <span class="label" role="columnheader">Fix for the proposal</span>
+          </div>
+          <div class="risk-row" role="row">
+            <div class="risk-name" role="cell"><i class="sev sev-high"></i><strong>Approval chain</strong><span>The brief names a marketing lead, but the founder and “the team” also review.</span></div>
+            <div class="risk-impact" role="cell"><span class="label m-label">Impact</span><span class="pill imp-high">+1–1.5 weeks</span></div>
+            <div class="risk-fix" role="cell"><svg class="ic"><use href="#i-pencil-simple-line"/></svg><span>One named approver in the SOW, three business days per feedback round.</span></div>
+          </div>
+          <div class="risk-row" role="row">
+            <div class="risk-name" role="cell"><i class="sev sev-med"></i><strong>Content readiness</strong><span>Copy is “in progress” with no owner.</span></div>
+            <div class="risk-impact" role="cell"><span class="label m-label">Impact</span><span class="pill imp-med">+0.5–1.5 weeks</span></div>
+            <div class="risk-fix" role="cell"><svg class="ic"><use href="#i-pencil-simple-line"/></svg><span>A content deadline as a dependency; the timeline pauses if it slips.</span></div>
+          </div>
+          <div class="risk-row" role="row">
+            <div class="risk-name" role="cell"><i class="sev sev-low"></i><strong>Open-ended revisions</strong><span>“Until we’re happy.”</span></div>
+            <div class="risk-impact" role="cell"><span class="label m-label">Impact</span><span class="pill imp-low">+10–15% design hours</span></div>
+            <div class="risk-fix" role="cell"><svg class="ic"><use href="#i-pencil-simple-line"/></svg><span>Two rounds per deliverable, extra rounds billed hourly.</span></div>
+          </div>
+        </div>
+
+        <div class="asks">
+          <span class="label">Ask before kickoff</span>
+          <ul class="ask-list">
+            <li><svg class="ic"><use href="#i-question"/></svg>Who signs off on design?</li>
+            <li><svg class="ic"><use href="#i-question"/></svg>Who writes the copy, and by when?</li>
+            <li><svg class="ic"><use href="#i-question"/></svg>Are we extending the brand system or replacing it?</li>
+          </ul>
+        </div>
+        <p class="report-note">Sample report. Figures are illustrative.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FEATURES ================= -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 class="h2">Built for the week before kickoff</h2>
+    </div>
+    <div class="features">
+      <article class="card feature">
+        <div class="feature-art bg-marigold">
+          <svg viewBox="0 0 320 140" role="img" aria-label="Price tags reading plus 1 to 1.5 weeks, plus 3,000 dollars, plus 10 percent hours">
+            <g font-family="Inter, sans-serif" font-weight="700" font-size="15">
+              <g transform="translate(34 30) rotate(-6)">
+                <path d="M0 8a8 8 0 0 1 8-8h96l20 20-20 20H8a8 8 0 0 1-8-8z" fill="#fff" stroke="#000" stroke-width="2"/>
+                <circle cx="106" cy="20" r="3.5" fill="#000"/><text x="12" y="25" fill="#000">+1–1.5 wk</text>
+              </g>
+              <g transform="translate(118 72) rotate(4)">
+                <path d="M0 8a8 8 0 0 1 8-8h80l20 20-20 20H8a8 8 0 0 1-8-8z" fill="#000"/>
+                <circle cx="90" cy="20" r="3.5" fill="#ffb110"/><text x="12" y="25" fill="#fff">+$3,000</text>
+              </g>
+              <g transform="translate(196 22) rotate(8)">
+                <path d="M0 8a8 8 0 0 1 8-8h80l20 20-20 20H8a8 8 0 0 1-8-8z" fill="#fff" stroke="#000" stroke-width="2"/>
+                <circle cx="90" cy="20" r="3.5" fill="#000"/><text x="12" y="25" fill="#000">+10% hrs</text>
+              </g>
+            </g>
+            <path d="M60 112c20-14 40 14 60 0s40 14 60 0" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="262" cy="108" r="12" fill="#f64932"/>
+          </svg>
+        </div>
+        <div class="feature-copy">
+          <h3 class="h3"><svg class="ic"><use href="#i-tag-duotone"/></svg>Risks with a price tag</h3>
+          <p class="body">Every risk comes with a likely impact on timeline and budget, shown as a range.</p>
+        </div>
+      </article>
+
+      <article class="card feature">
+        <div class="feature-art bg-sky-tint">
+          <svg viewBox="0 0 320 140" role="img" aria-label="Chat bubbles with questions for the client">
+            <g font-family="Inter, sans-serif" font-size="12.5" font-weight="500">
+              <rect x="28" y="20" width="176" height="36" rx="18" fill="#fff" stroke="rgba(0,0,0,0.08)"/>
+              <text x="46" y="42" fill="#000">Who signs off on design?</text>
+              <rect x="124" y="66" width="152" height="36" rx="18" fill="#0075de"/>
+              <text x="142" y="88" fill="#fff">Who writes the copy?</text>
+              <rect x="28" y="112" width="58" height="22" rx="11" fill="#fff" stroke="rgba(0,0,0,0.08)"/>
+              <g fill="#0075de"><circle cx="45" cy="123" r="3"/><circle cx="57" cy="123" r="3" opacity="0.6"/><circle cx="69" cy="123" r="3" opacity="0.3"/></g>
+            </g>
+            <circle cx="262" cy="34" r="9" fill="#ffb110"/>
+            <path d="M226 124l8-8m0 8l-8-8" stroke="#f64932" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="feature-copy">
+          <h3 class="h3"><svg class="ic"><use href="#i-chats-circle-duotone"/></svg>Questions for the client</h3>
+          <p class="body">Gaps in the brief become a short list you can send before the first call.</p>
+        </div>
+      </article>
+
+      <article class="card feature">
+        <div class="feature-art bg-coral">
+          <svg viewBox="0 0 320 140" role="img" aria-label="A statement of work page with a revisions clause and a check mark">
+            <g transform="translate(70 16)">
+              <rect width="180" height="124" rx="8" fill="#fff"/>
+              <text x="16" y="26" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#000">SOW · 4.2 Revisions</text>
+              <rect x="16" y="40" width="148" height="6" rx="3" fill="rgba(0,0,0,0.12)"/>
+              <rect x="16" y="54" width="120" height="6" rx="3" fill="rgba(0,0,0,0.12)"/>
+              <rect x="12" y="66" width="156" height="24" rx="5" fill="#fde3df"/>
+              <text x="20" y="82" font-family="Inter, sans-serif" font-size="10.5" font-weight="500" fill="#000">Two rounds per deliverable</text>
+              <rect x="16" y="100" width="136" height="6" rx="3" fill="rgba(0,0,0,0.12)"/>
+            </g>
+            <g transform="translate(232 18)">
+              <circle cx="20" cy="20" r="20" fill="#000"/>
+              <path d="M11 20.5l6 6 12-13" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            <circle cx="44" cy="40" r="8" fill="#fff" opacity="0.9"/>
+            <circle cx="40" cy="104" r="14" fill="none" stroke="#000" stroke-width="2.5"/>
+          </svg>
+        </div>
+        <div class="feature-copy">
+          <h3 class="h3"><svg class="ic"><use href="#i-clipboard-text-duotone"/></svg>Proposal-ready fixes</h3>
+          <p class="body">Buffers, SOW clauses, revision limits and feedback deadlines you can paste straight in.</p>
+        </div>
+      </article>
+
+      <article class="card feature">
+        <div class="feature-art bg-midnight">
+          <!-- scale: x = 20 + 20px per week, 0–14 weeks -->
+          <svg viewBox="0 0 320 140" role="img" aria-label="The likely range narrows from 6–12 weeks to 7.5–9 weeks after 12 finished projects">
+            <g fill="#62aef0" opacity="0.55">
+              <circle cx="168" cy="22" r="3"/><circle cx="186" cy="28" r="3"/><circle cx="174" cy="34" r="3"/><circle cx="196" cy="20" r="3"/><circle cx="160" cy="30" r="3"/><circle cx="204" cy="32" r="3"/><circle cx="182" cy="18" r="3"/>
+            </g>
+            <g font-family="Inter, sans-serif" font-size="11" font-weight="500">
+              <text x="20" y="58" fill="rgba(255,255,255,0.64)">Before · 6–12 wk</text>
+              <rect x="140" y="50" width="120" height="8" rx="4" fill="rgba(255,255,255,0.28)"/>
+              <text x="20" y="90" fill="#fff">After 12 projects · 7.5–9 wk</text>
+              <rect x="170" y="82" width="30" height="8" rx="4" fill="#62aef0"/>
+              <line x1="20" y1="114" x2="300" y2="114" stroke="rgba(255,255,255,0.18)"/>
+              <g fill="rgba(255,255,255,0.5)" font-size="10" text-anchor="middle">
+                <text x="20" y="130" text-anchor="start">0</text><text x="100" y="130">4</text><text x="180" y="130">8</text><text x="260" y="130">12 wk</text>
+              </g>
+            </g>
+            <circle cx="292" cy="24" r="7" fill="#ffb110"/>
+          </svg>
+        </div>
+        <div class="feature-copy">
+          <h3 class="h3"><svg class="ic"><use href="#i-chart-line-up-duotone"/></svg>Learns from your projects</h3>
+          <p class="body">Add finished projects, planned versus actual, and the ranges tighten around how your studio really works.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FIT ================= -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 class="h2">Made for studios, by a studio</h2>
+    </div>
+    <div class="fit-grid">
+      <article class="card fit">
+        <div class="fit-head"><svg class="ic" style="color:var(--blue)"><use href="#i-check-circle-fill"/></svg><span class="label">Good fit</span></div>
+        <p>Design, brand and Webflow studios of 3–20 people that sell fixed-price or milestone-based projects and estimate each one by hand.</p>
+        <div class="fit-tags"><span class="pill">3–20 people</span><span class="pill">Fixed-price</span><span class="pill">Milestone-based</span></div>
+      </article>
+      <article class="card fit no">
+        <div class="fit-head"><svg class="ic" style="color:var(--ink-40)"><use href="#i-x-circle"/></svg><span class="label">Not a fit yet</span></div>
+        <p>Software houses, hourly-only teams, in-house departments.</p>
+        <div class="fit-tags"><span class="pill">Software houses</span><span class="pill">Hourly-only</span><span class="pill">In-house</span></div>
+      </article>
+    </div>
+    <figure class="quote">
+      <div class="avatar" aria-hidden="true">
+        <svg viewBox="0 0 52 52" width="52" height="52"><rect x="14" y="14" width="14" height="14" rx="3" fill="#0075de"/><circle cx="33" cy="33" r="8" fill="#ffb110"/><path d="M12 38c4-4 8 4 12 0" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      </div>
+      <div>
+        <blockquote>We run a design and Webflow studio. This is the tool we wanted every time a project looked fine on paper and wasn’t.</blockquote>
+        <cite>The team behind Risk Calculator</cite>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<!-- ================= PRICING ================= -->
+<section class="section" id="pricing">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="label">Planned pricing</span>
+      <h2 class="h2">Per studio, not per seat</h2>
+      <p class="lede">Final pricing may change, and early-access members will hear first.</p>
+    </div>
+    <div class="price-grid">
+      <article class="card plan">
+        <div class="plan-top"><span class="plan-name">Solo</span></div>
+        <div class="price">$49<span> / month</span></div>
+        <ul>
+          <li><svg class="ic"><use href="#i-check"/></svg>Up to 5 reports a month</li>
+          <li><svg class="ic"><use href="#i-check"/></svg>Risk report</li>
+          <li><svg class="ic"><use href="#i-check"/></svg>Client questions</li>
+        </ul>
+        <a class="btn btn-outline btn-lg" href="#access" data-plan="Solo">Choose Solo</a>
+      </article>
+      <article class="card plan featured">
+        <div class="plan-top"><span class="plan-name">Studio</span></div>
+        <div class="price">$99<span> / month</span></div>
+        <ul>
+          <li><svg class="ic"><use href="#i-check"/></svg>Up to 20 reports a month</li>
+          <li><svg class="ic"><use href="#i-check"/></svg>Proposal-ready SOW clauses</li>
+          <li><svg class="ic"><use href="#i-check"/></svg>Calibration on your past projects</li>
+        </ul>
+        <a class="btn btn-primary btn-lg" href="#access" data-plan="Studio">Choose Studio</a>
+      </article>
+      <article class="card plan">
+        <div class="plan-top"><span class="plan-name">Agency</span></div>
+        <div class="price">$199<span> / month</span></div>
+        <ul>
+          <li><svg class="ic"><use href="#i-check"/></svg>Unlimited reports</li>
+          <li><svg class="ic"><use href="#i-check"/></svg>Several estimators</li>
+          <li><svg class="ic"><use href="#i-check"/></svg>Benchmarks against other studios</li>
+        </ul>
+        <a class="btn btn-outline btn-lg" href="#access" data-plan="Agency">Choose Agency</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ACCESS + FAQ ================= -->
+<section class="section" id="access">
+  <div class="wrap access">
+    <div>
+      <div class="section-head">
+        <h2 class="h2">Get early access</h2>
+        <p class="lede">We’re opening access to a small group of studios first.</p>
+      </div>
+      <form class="card form" id="accessForm" novalidate>
+        <div id="formFields" style="display:grid;gap:18px">
+          <div class="field">
+            <label for="f-email">Work email</label>
+            <div class="input-wrap"><svg class="ic"><use href="#i-envelope-simple"/></svg><input id="f-email" name="email" type="email" autocomplete="email" placeholder="you@studio.com" required aria-describedby="f-email-err"></div>
+            <span class="err" id="f-email-err" hidden>Enter a work email like you@studio.com.</span>
+          </div>
+          <div class="field">
+            <label for="f-site">Studio website</label>
+            <div class="input-wrap"><svg class="ic"><use href="#i-globe-simple"/></svg><input id="f-site" name="site" type="text" inputmode="url" autocomplete="url" placeholder="studio.com"></div>
+          </div>
+          <div class="field">
+            <label for="f-how">How do you estimate projects today?</label>
+            <textarea id="f-how" name="how" rows="4" placeholder="A spreadsheet per project, past invoices, gut feel…"></textarea>
+          </div>
+          <div class="check">
+            <input id="f-share" name="share" type="checkbox">
+            <label for="f-share">I’d share 5 finished projects in exchange for a free margin review.</label>
+          </div>
+          <input type="hidden" id="f-plan" name="plan" value="">
+          <button class="btn btn-primary btn-lg" type="submit">Request access <svg class="ic ic-arrow"><use href="#i-arrow-right"/></svg></button>
+        </div>
+        <div class="success" id="formSuccess" hidden>
+          <svg class="ic"><use href="#i-seal-check-duotone"/></svg>
+          <strong>You’re on the list</strong>
+          <p class="body" id="successText">We’ll email you when your studio’s spot opens.</p>
+        </div>
+      </form>
+    </div>
+
+    <div>
+      <h3 class="h3" style="font-size:24px">FAQ</h3>
+      <div class="faq">
+        <details open>
+          <summary>Is it live?<svg class="ic"><use href="#i-plus"/></svg></summary>
+          <p>Not yet. We’re building it with a small group of studios, and joining the list gets you early access and a say in what we build first.</p>
+        </details>
+        <details>
+          <summary>What is the analysis based on?<svg class="ic"><use href="#i-plus"/></svg></summary>
+          <p>AI analysis of your brief, checked against patterns from real finished projects, starting with our own studio’s. As you add your projects, it calibrates to yours.</p>
+        </details>
+        <details>
+          <summary>How accurate is it?<svg class="ic"><use href="#i-plus"/></svg></summary>
+          <p>You get ranges with the reasoning behind each, not a single number. It doesn’t replace your judgment; it makes sure nothing obvious gets missed.</p>
+        </details>
+        <details>
+          <summary>What happens to our data?<svg class="ic"><use href="#i-plus"/></svg></summary>
+          <p>Your briefs and project data stay private to your studio. Shared benchmarks use only anonymised, aggregated data, and only if you opt in.</p>
+        </details>
+        <details>
+          <summary>Does it work for development projects?<svg class="ic"><use href="#i-plus"/></svg></summary>
+          <p>It’s built first for design, brand and Webflow work. Development-heavy projects come later.</p>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <span>Risk Calculator · Early access</span>
+    <nav aria-label="Footer">
+      <a href="#access">Contact</a>
+      <a href="#access">Privacy</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var nav = document.getElementById('nav');
+  function onScroll() { nav.classList.toggle('is-stuck', window.scrollY > 4); }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // Plan buttons carry the choice into the form
+  var planInput = document.getElementById('f-plan');
+  document.querySelectorAll('[data-plan]').forEach(function (a) {
+    a.addEventListener('click', function () { planInput.value = a.getAttribute('data-plan'); });
+  });
+
+  var form = document.getElementById('accessForm');
+  var email = document.getElementById('f-email');
+  var err = document.getElementById('f-email-err');
+  email.addEventListener('input', function () {
+    if (email.getAttribute('aria-invalid') === 'true' && email.validity.valid) {
+      email.removeAttribute('aria-invalid'); err.hidden = true;
+    }
+  });
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!email.value.trim() || !email.validity.valid) {
+      email.setAttribute('aria-invalid', 'true'); err.hidden = false; email.focus();
+      return;
+    }
+    var plan = planInput.value;
+    document.getElementById('successText').textContent =
+      'We’ll email ' + email.value.trim() + ' when your studio’s spot opens' + (plan ? ', and note your interest in the ' + plan + ' plan.' : '.');
+    document.getElementById('formFields').hidden = true;
+    document.getElementById('formSuccess').hidden = false;
+  });
+})();
+</script>
+</body>
+</html>
