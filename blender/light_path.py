@@ -4,20 +4,21 @@ Light Path: a camera ride along a bundle of glowing fibres.
 Run in Blender 4.2+ (tested on 5.x):  Scripting tab -> Open this file -> Run Script.
 The script builds a fresh scene called "LightPath" (re-running rebuilds it):
 
-  * a bundle of thin light fibres that fan out wide at the back and converge
-    to a single point (the tip), with tiny "dew" sparkles along them
+  * a ribbon of thin light fibres, wide at the back, arcing up over a crest
+    and diving down to a single point (the tip), with tiny "dew" sparkles
   * an animated material: light pulses run along the fibres towards the tip,
     plus a slow shimmer noise
   * a lavender / deep-navy gradient world that fades to black at the end
-  * a camera that flies forward along the path (never backwards), then peels
-    off and ends on the profile of the converging tip
+  * a camera that rides forward on top of the ribbon (never backwards, never
+    through it), follows it up over the crest and looks down the dive, then
+    lifts off to see the whole shape from the side
 
-Storyboard (reference frames), flight works like a hyperspace tunnel:
-  K1  ref 2 - macro, right on the fibres, they stream past
-  K2  ref 1 - inside the bundle, flying at the convergence point (vanishing point)
-  K3  ref 3 - still flying forward, the whole frame keeps rolling
-  K4  ref 4 - the camera peels off below the bundle: fan on the left, tip in the
-              centre, background fades to black
+Storyboard (reference frames). The camera never goes through the fibres:
+  K1  ref 2 - macro, riding just above the fibres, they stream past
+  K2  ref 1 - riding up the arc, the ribbon curves over ahead of the camera
+  K3  ref 3 - over the crest: the camera looks down along the dive to the tip
+  K4  ref 4 - lift off: the camera flies away from the ribbon and looks back at
+              it, fan on the left, tip in the centre, background fades to black
 
 Tweak everything in the CONFIG block and CAMERA_KEYS, then run again.
 """
@@ -28,7 +29,7 @@ import random
 import bmesh
 import bpy
 import numpy as np
-from mathutils import Quaternion, Vector
+from mathutils import Matrix, Quaternion, Vector
 
 # --------------------------------------------------------------------------
 # CONFIG
@@ -42,12 +43,14 @@ SEED = 7
 
 # Path / fibre bundle
 PATH_LENGTH = 30.0          # length from the back of the fan to the tip (along +X)
-PATH_BEND = -16.0           # sideways bend of the path (in the XY plane)
-PATH_RISE = 1.2             # how much higher the back of the fan sits than the tip
+PITCH_BACK = 35.0           # the ribbon rises at this angle at the back (degrees)...
+PITCH_TIP = -75.0           # ...goes over a crest and dives down at this angle to the tip
+BEND_START = 0.25           # where along the path the arc starts (0 = back, 1 = tip)
+BEND_END = 0.75             # ... and where it ends
 FAN_RADIUS = 6.0            # half-width of the fan at the very back
-FAN_THICKNESS = 0.22        # sheet thickness relative to its width
-FAN_CURL = 0.35             # how much the sheet curls (U-shaped cross-section)
-FAN_TWIST = -1.1            # twist of the sheet along the path (radians)
+FAN_THICKNESS = 0.05        # ribbon thickness relative to its width
+FAN_CURL = 0.12             # edges of the ribbon lift a little (shallow channel)
+FAN_TWIST = 0.0             # twist of the ribbon along the path (radians)
 CONVERGE_POWER = 2.3        # >1 gives the concave "cusp" shape near the tip
 TAIL_LENGTH = 0.6           # thin line continuing past the convergence point
 STRAND_COUNT = 6000
@@ -67,30 +70,32 @@ FIBRE_OPACITY = 0.35        # fibres are see-through, so dense areas glow bright
 PULSE_STRENGTH = 6.0        # extra glow of the travelling light pulses
 PULSE_SPEED = 0.22          # pulses per second along a fibre
 SHIMMER_SPEED = 0.25        # how fast the shimmer noise evolves
-GLOW_DIRECTION = (0.5, 0.5, 0.7)  # where the lavender light sits in the sky
-WORLD_FADE_START = 190      # frame where the background starts fading to black
-WORLD_FADE_END = 250        # frame where it is fully black
+GLOW_DIRECTION = (0.5, 0.2, 0.85)  # where the lavender light sits in the sky
+WORLD_FADE_START = 185      # frame where the background starts fading to black
+WORLD_FADE_END = 240        # frame where it is fully black
 
-# Camera. Positions are given relative to the path, so the camera follows it:
+# Camera. Positions are given relative to the ribbon, so the camera follows it:
 #   s       - where along the path the camera is (0 = back of the fan, 1 = tip)
-#   side    - offset to the side of the path (+ = left when looking at the tip)
-#   up      - offset above the path
+#   up      - height above the ribbon (the camera never goes below or through it:
+#             it is pushed up automatically to keep CAMERA_CLEARANCE)
+#   side    - offset across the ribbon
 #   look_s  - which point of the path the camera looks at
 #   look_up / look_side - offsets of that look-at point
 #   lens    - focal length in mm, roll in degrees
+#   up_b    - 0: the top of the frame points away from the ribbon (riding on it);
+#             1 / -1: the top of the frame points across the ribbon (side view)
 # Values are blended with a smooth monotone curve, so the camera never stops
 # or reverses between keys.
 CAMERA_KEYS = [
-    # Fly forward along the fibres towards the point where they converge (like a
-    # hyperspace tunnel: vanishing point ahead, steady roll), then peel off.
-    # frame   s     side   up     look_s look_side look_up lens  roll
-    dict(frame=1,   s=0.00, side=0.0,  up=-0.6, look_s=0.10, look_side=0.9, look_up=-1.5, lens=40, roll=20),   # K1 ref 2
-    dict(frame=80,  s=0.12, side=0.5,  up=0.3,  look_s=1.00, look_side=0.0, look_up=0.0,  lens=24, roll=0),    # K2 ref 1
-    dict(frame=160, s=0.30, side=0.6,  up=0.45, look_s=1.00, look_side=0.1, look_up=0.05, lens=24, roll=-30),  # K3 ref 3
-    dict(frame=210, s=0.38, side=-1.0, up=-1.2, look_s=0.98, look_side=0.0, look_up=0.0,  lens=22, roll=-34),  # peel off
-    dict(frame=256, s=0.45, side=-3.0, up=-2.5, look_s=0.97, look_side=0.0, look_up=0.0,  lens=20, roll=-35),  # K4 ref 4
-    dict(frame=288, s=0.46, side=-3.1, up=-2.6, look_s=0.972, look_side=0.0, look_up=0.0, lens=20, roll=-36),  # hold, slow drift
+    # Ride forward on top of the ribbon, up the arc, over the crest, down the dive, lift off.
+    # frame   s     up    side  look_s look_up look_side lens  roll  up_b
+    dict(frame=1,   s=0.04, up=0.3,  side=0.4, look_s=0.14,  look_up=0.0, look_side=0.9, lens=35, roll=25,  up_b=0),  # K1 ref 2
+    dict(frame=95,  s=0.30, up=1.0,  side=0.0, look_s=0.50,  look_up=2.0, look_side=0.0, lens=24, roll=0,   up_b=0),  # K2 ref 1
+    dict(frame=175, s=0.58, up=3.0,  side=0.0, look_s=1.00,  look_up=0.0, look_side=0.0, lens=24, roll=-20, up_b=0),  # K3 ref 3
+    dict(frame=250, s=0.50, up=25.0, side=0.0, look_s=0.72,  look_up=0.0, look_side=0.0, lens=30, roll=0,   up_b=1),  # K4 ref 4
+    dict(frame=288, s=0.50, up=27.0, side=0.0, look_s=0.725, look_up=0.0, look_side=0.0, lens=30, roll=0,   up_b=1),  # hold, drift away
 ]
+CAMERA_CLEARANCE = 0.12     # minimum distance between the camera and any fibre
 MOTION_BLUR = 0.5           # shutter length in frames, 0 disables the streaks
 DOF_FSTOP = 2.8             # lower = shallower depth of field (only near K1)
 
@@ -98,24 +103,40 @@ DOF_FSTOP = 2.8             # lower = shallower depth of field (only near K1)
 # --------------------------------------------------------------------------
 # Path geometry
 # --------------------------------------------------------------------------
+def bend_angle(s):
+    """Pitch of the path at s: rising at the back, arcing over a crest, diving to the tip."""
+    k = np.clip((np.asarray(s, dtype=float) - BEND_START) / (BEND_END - BEND_START), 0.0, 1.0)
+    k = k * k * (3 - 2 * k)
+    return np.radians(PITCH_BACK + (PITCH_TIP - PITCH_BACK) * k)
+
+
+_SPINE = {}
+
+
 def spine(s):
-    """Centre line of the bundle. s may be an array; s=1 is the tip."""
+    """Centre line of the ribbon (an arc in the XZ plane). s may be an array; s=1 is the tip."""
+    if not _SPINE:
+        grid = np.linspace(-0.5, 1.5, 8001)
+        theta = bend_angle(grid)
+        step = PATH_LENGTH * (grid[1] - grid[0])
+        x = np.cumsum(np.cos(theta)) * step
+        z = np.cumsum(np.sin(theta)) * step
+        i0 = np.searchsorted(grid, 0.0)
+        _SPINE.update(grid=grid, x=x - x[i0], z=z - z[i0])
     s = np.asarray(s, dtype=float)
-    back = np.clip(1.0 - s, 0.0, None)
-    x = PATH_LENGTH * s
-    y = PATH_BEND * back ** 2
-    z = PATH_RISE * back ** 2
-    return np.stack([x, y, z], axis=-1)
+    x = np.interp(s, _SPINE["grid"], _SPINE["x"])
+    z = np.interp(s, _SPINE["grid"], _SPINE["z"])
+    return np.stack([x, np.zeros_like(x), z], axis=-1)
 
 
-def spine_frame(s, eps=1e-3):
-    """Tangent, side and up unit vectors of the path at s."""
-    t = spine(s + eps) - spine(s - eps)
-    t /= np.linalg.norm(t, axis=-1, keepdims=True)
-    up_ref = np.broadcast_to(np.array([0.0, 0.0, 1.0]), t.shape)
-    side = np.cross(up_ref, t)
-    side /= np.linalg.norm(side, axis=-1, keepdims=True)
-    up = np.cross(t, side)
+def spine_frame(s):
+    """Tangent, side (across the ribbon) and up (away from the ribbon) unit vectors."""
+    theta = bend_angle(s)
+    c, sn = np.cos(theta), np.sin(theta)
+    zero = np.zeros_like(c)
+    t = np.stack([c, zero, sn], axis=-1)
+    side = np.stack([zero, zero + 1.0, zero], axis=-1)
+    up = np.stack([-sn, zero, c], axis=-1)
     return t, side, up
 
 
@@ -335,9 +356,8 @@ def strand_positions(rng):
     u = np.linspace(0.0, 1.0, m)
     s = start[:, None] + (1.0 + tail - start[:, None]) * u[None, :] ** 0.85  # (n, m)
 
-    # Cross-section coordinates, denser near the sheet's surfaces and edges.
+    # Cross-section coordinates: spread evenly across the ribbon's width.
     w = rng.uniform(-1.0, 1.0, n)
-    w = np.sign(w) * np.abs(w) ** 0.7
     d = rng.normal(0.0, 0.45, n).clip(-1.2, 1.2)
 
     t, side, up = spine_frame(s)
@@ -430,7 +450,36 @@ def monotone_cubic(xs, ys):
     return f
 
 
-def build_camera(scene):
+def clearance_push(eye, normal, pts, clearance):
+    """How far to lift the camera along the ribbon normal so no fibre is closer than clearance."""
+    push = 0.0
+    box = pts[np.all(np.abs(pts - eye) < clearance + 2.0, axis=1)]
+    for _ in range(30):
+        if len(box) == 0:
+            break
+        dmin = np.sqrt(((box - (eye + normal * push)) ** 2).sum(axis=1).min())
+        if dmin >= clearance:
+            break
+        push += clearance - dmin + 0.005
+    return push
+
+
+def camera_pose(v, push=0.0):
+    """Camera position, look-at point and rotation for one set of key values."""
+    _, sd, n = spine_frame(np.array([v["s"]]))
+    eye = path_point(v["s"], v["side"], v["up"] + push)
+    target = path_point(v["look_s"], v["look_side"], v["look_up"])
+    forward = (target - eye).normalized()
+    ub = v["up_b"]
+    up_hint = Vector(n[0]) * (1 - abs(ub)) + Vector(sd[0]) * ub
+    right = forward.cross(up_hint).normalized()
+    up = right.cross(forward)
+    q = Matrix((right, up, -forward)).transposed().to_quaternion()
+    q = q @ Quaternion((0, 0, 1), math.radians(v["roll"]))
+    return eye, target, q
+
+
+def build_camera(scene, fibre_pos):
     cam_data = bpy.data.cameras.new("Rider")
     cam_data.sensor_width = 36
     cam_data.clip_start = 0.01
@@ -447,25 +496,35 @@ def build_camera(scene):
 
     frames = [k["frame"] for k in CAMERA_KEYS]
     chans = {c: monotone_cubic(frames, [k[c] for k in CAMERA_KEYS])
-             for c in ("s", "side", "up", "look_s", "look_side", "look_up", "lens", "roll")}
+             for c in ("s", "side", "up", "look_s", "look_side", "look_up", "lens", "roll", "up_b")}
+    span = range(scene.frame_start, scene.frame_end + 1)
+    vals = [{c: float(fn(f)) for c, fn in chans.items()} for f in span]
+
+    # Keep the camera outside the ribbon: lift it where it would touch fibres,
+    # then smooth the lift so it reads as a natural move, not a bump.
+    pts = fibre_pos[:, ::2].reshape(-1, 3)
+    pushes = []
+    for v in vals:
+        _, _, n = spine_frame(np.array([v["s"]]))
+        eye = np.array(path_point(v["s"], v["side"], v["up"]))
+        pushes.append(clearance_push(eye, n[0], pts, CAMERA_CLEARANCE))
+    pushes = np.array(pushes)
+    pushes = np.array([pushes[max(0, i - 6):i + 7].max() for i in range(len(pushes))])
+    kernel = np.exp(-0.5 * (np.arange(-12, 13) / 4.0) ** 2)
+    pushes = np.convolve(np.pad(pushes, 12, mode="edge"), kernel / kernel.sum(), mode="valid")
 
     prev = None
-    for f in range(scene.frame_start, scene.frame_end + 1):
-        v = {c: float(fn(f)) for c, fn in chans.items()}
-        eye = path_point(v["s"], v["side"], v["up"])
-        target = path_point(v["look_s"], v["look_side"], v["look_up"])
-        direction = (target - eye).normalized()
-        q = direction.to_track_quat("-Z", "Y")
-        q = q @ Quaternion((0, 0, 1), math.radians(v["roll"]))
+    for f, v, push in zip(span, vals, pushes):
+        eye, target, q = camera_pose(v, push)
         if prev is not None and prev.dot(q) < 0:
             q.negate()
         prev = q
         cam.location = eye
         cam.rotation_quaternion = q
         cam_data.lens = v["lens"]
-        # Focus on the nearest fibres early on, on the tip later.
-        near = path_point(min(v["s"] + 0.08, 1.0), 0, 0)
-        focus.location = near.lerp(target, min(1.0, max(0.0, (f - 1) / 120)))
+        # Focus on the fibres just ahead early on, on the look-at point later.
+        near = path_point(min(v["s"] + 0.05, 1.0), v["look_side"] * 0.5, 0)
+        focus.location = near.lerp(target, min(1.0, max(0.0, (f - 1) / 150)))
         cam.keyframe_insert("location", frame=f)
         cam.keyframe_insert("rotation_quaternion", frame=f)
         cam_data.keyframe_insert("lens", frame=f)
@@ -548,7 +607,7 @@ def main():
     build_world(scene)
     _, pos = build_fibres(scene, rng, fibre_material())
     build_dew(scene, rng, pos, dew_material())
-    build_camera(scene)
+    build_camera(scene, pos)
     setup_glow(scene)
     scene.frame_set(1)
     print("Light Path: scene ready,", STRAND_COUNT, "fibres,", FRAME_END, "frames")
